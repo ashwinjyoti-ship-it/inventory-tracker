@@ -50,7 +50,7 @@ data.forEach((row, index) => {
     const sqlName = equipmentName.replace(/'/g, "''");
     const sqlCategory = category.replace(/'/g, "''");
     sqlStatements.push(
-      `INSERT INTO equipment (id, name, category) VALUES (${equipmentId}, '${sqlName}', '${sqlCategory}');`
+      `INSERT OR IGNORE INTO equipment (id, name, category) VALUES (${equipmentId}, '${sqlName}', '${sqlCategory}');`
     );
     equipmentMap.set(equipmentName, equipmentId);
     equipmentItemCount.set(equipmentId, 0);
@@ -69,7 +69,7 @@ data.forEach((row, index) => {
       const sqlName = equipmentName.replace(/'/g, "''");
 
       sqlStatements.push(
-        `INSERT INTO items (id, equipment_id, item_number, home_venue_id, current_venue_id, status) ` +
+        `INSERT OR IGNORE INTO items (id, equipment_id, item_number, home_venue_id, current_venue_id, status) ` +
         `VALUES (${itemId}, ${currentEquipmentId}, '${itemNumber}', ${venueId}, ${venueId}, 'available');`
       );
       itemId++;
