@@ -1,0 +1,52 @@
+name = "sound-inventory-tracker"
+main = "src/backend/index.js"
+compatibility_date = "2024-04-18"
+type = "service"
+
+# Development environment
+[env.development]
+name = "sound-inventory-tracker-dev"
+routes = [
+  { pattern = "dev.inventory.local", zone_name = "example.com" }
+]
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "sound-inventory-dev"
+database_id = "YOUR_DEV_DATABASE_ID"
+
+# Production environment
+[env.production]
+name = "sound-inventory-tracker"
+routes = [
+  { pattern = "inventory.youromain.com", zone_name = "yourdomain.com" }
+]
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "sound-inventory"
+database_id = "YOUR_PROD_DATABASE_ID"
+
+# Default (local development)
+[[d1_databases]]
+binding = "DB"
+database_name = "sound-inventory-local"
+database_id = "local"
+
+# Environment variables
+[env.development.vars]
+ADMIN_PASSWORD = "change-me-in-production"
+ENVIRONMENT = "development"
+
+[env.production.vars]
+ADMIN_PASSWORD = "change-me-in-production"
+ENVIRONMENT = "production"
+
+# Build configuration
+[build]
+command = "npm install"
+cwd = "./"
+
+# Triggers (optional)
+[triggers]
+crons = ["0 0 * * *"]  # Daily at midnight for alerts
