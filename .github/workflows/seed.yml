@@ -1,0 +1,32 @@
+name: Seed Database (One-Time Setup)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate initial data SQL
+        run: npm run migrate
+
+      - name: Seed database
+        run: npx wrangler d1 execute sound-inventory --file database/migrations/001_initial_data.sql --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: ✅ Database seeded successfully!
+        run: echo "✅ Inventory data loaded from Excel!"
