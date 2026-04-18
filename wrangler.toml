@@ -1,18 +1,15 @@
 name = "sound-inventory-tracker"
-main = "src/backend/index.js"
+type = "javascript"
 compatibility_date = "2024-04-18"
 
-# Serve frontend static files
-[assets]
-directory = "./src/frontend"
+[env.production]
+name = "sound-inventory-tracker"
 
-# D1 Database binding
-[[d1_databases]]
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "sound-inventory"
 database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
 
-# Environment variables
-[vars]
+[env.production.vars]
 ADMIN_PASSWORD = "changeme"
 ENVIRONMENT = "production"

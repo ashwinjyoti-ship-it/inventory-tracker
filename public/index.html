@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sound Inventory Tracker</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🎵 Sound Inventory Tracker</h1>
+    <div id="user-info" class="text-small text-muted"></div>
+  </header>
+
+  <main class="container">
+    <!-- Checkout Page -->
+    <div id="checkout-page" class="page hidden">
+      <h2>Check Out Equipment</h2>
+
+      <div class="form-group">
+        <label for="checkout-crew">Crew Member *</label>
+        <select id="checkout-crew" required>
+          <option value="">-- Select Crew Member --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-from">From Venue *</label>
+        <select id="checkout-from" required>
+          <option value="">-- Select Venue --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-to">To Venue *</label>
+        <select id="checkout-to" required>
+          <option value="">-- Select Destination --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Select Equipment</label>
+        <div id="checkout-items" class="card"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-notes">Notes (Optional)</label>
+        <textarea id="checkout-notes" placeholder="Any additional notes..."></textarea>
+      </div>
+
+      <button class="btn btn-success btn-block" id="checkout-confirm">Check Out Selected Items</button>
+      <button class="btn btn-secondary btn-block" onclick="app.showPage('home')">Cancel</button>
+    </div>
+
+    <!-- Return Page -->
+    <div id="return-page" class="page hidden">
+      <h2>Return Equipment</h2>
+
+      <div class="form-group">
+        <label for="return-crew">Crew Member *</label>
+        <select id="return-crew" required>
+          <option value="">-- Select Crew Member --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="return-to">Return To *</label>
+        <select id="return-to" required>
+          <option value="">-- Select Venue --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Items Checked Out by You</label>
+        <div id="return-items" class="card"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="return-notes">Notes (Optional)</label>
+        <textarea id="return-notes" placeholder="Any additional notes..."></textarea>
+      </div>
+
+      <button class="btn btn-success btn-block" id="return-confirm">Return Selected Items</button>
+      <button class="btn btn-secondary btn-block" onclick="app.showPage('home')">Cancel</button>
+    </div>
+
+    <!-- History Page -->
+    <div id="history-page" class="page hidden">
+      <h2>Movement History</h2>
+
+      <div class="form-group">
+        <label for="history-filter">Filter by Crew Member</label>
+        <select id="history-filter">
+          <option value="">-- All Crew --</option>
+        </select>
+      </div>
+
+      <div id="history-list" class="card"></div>
+    </div>
+
+    <!-- Alerts Page -->
+    <div id="alerts-page" class="page hidden">
+      <h2>⚠️ Unreturned Items Alert</h2>
+      <p class="text-small text-muted mb-2">Equipment not returned after 5 days</p>
+
+      <div id="alerts-list" class="card"></div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="admin-page" class="page hidden">
+      <h2>Admin Panel</h2>
+
+      <div id="admin-auth" class="form-group">
+        <label for="admin-password">Admin Password</label>
+        <input type="password" id="admin-password" placeholder="Enter admin password">
+        <button class="btn btn-primary btn-block mt-1" id="admin-login">Login</button>
+      </div>
+
+      <div id="admin-content" class="hidden">
+        <!-- Venues Section -->
+        <div class="card mb-3">
+          <h3>Manage Venues</h3>
+
+          <div class="form-group mt-2">
+            <label for="venue-name">New Venue Name</label>
+            <input type="text" id="venue-name" placeholder="e.g., Outdoor Stage A">
+          </div>
+
+          <div class="form-group">
+            <label for="venue-desc">Description</label>
+            <input type="text" id="venue-desc" placeholder="Optional description">
+          </div>
+
+          <button class="btn btn-primary btn-block" id="venue-add">Add Venue</button>
+
+          <div id="venues-list" class="mt-2"></div>
+        </div>
+
+        <!-- Crew Section -->
+        <div class="card">
+          <h3>Manage Crew Members</h3>
+
+          <div class="form-group mt-2">
+            <label for="crew-name">New Crew Member Name</label>
+            <input type="text" id="crew-name" placeholder="e.g., John Smith">
+          </div>
+
+          <button class="btn btn-primary btn-block" id="crew-add">Add Crew Member</button>
+
+          <div id="crew-list" class="mt-2"></div>
+        </div>
+
+        <button class="btn btn-secondary btn-block mt-3" id="admin-logout">Logout</button>
+      </div>
+    </div>
+
+    <!-- Home Page -->
+    <div id="home-page" class="page">
+      <h2>Welcome to Sound Inventory Tracker</h2>
+      <p class="text-small text-muted mb-2">Manage equipment across venues</p>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('checkout')">
+          <div class="list-item-content">
+            <div class="list-item-title">📦 Check Out Equipment</div>
+            <div class="list-item-subtitle">Take equipment from a venue</div>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('return')">
+          <div class="list-item-content">
+            <div class="list-item-title">↩️ Return Equipment</div>
+            <div class="list-item-subtitle">Return checked out items</div>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('history')">
+          <div class="list-item-content">
+            <div class="list-item-title">📋 Movement History</div>
+            <div class="list-item-subtitle">View all movements and history</div>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('alerts')">
+          <div class="list-item-content">
+            <div class="list-item-title">⚠️ Unreturned Items</div>
+            <div class="list-item-subtitle">Equipment not returned after 5 days</div>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+
+      <div id="quick-stats" class="card"></div>
+    </div>
+  </main>
+
+  <!-- Navigation -->
+  <nav>
+    <button class="nav-item active" onclick="app.showPage('home')" data-page="home">
+      <span>🏠</span> Home
+    </button>
+    <button class="nav-item" onclick="app.showPage('checkout')" data-page="checkout">
+      <span>📦</span> Checkout
+    </button>
+    <button class="nav-item" onclick="app.showPage('return')" data-page="return">
+      <span>↩️</span> Return
+    </button>
+    <button class="nav-item" onclick="app.showPage('history')" data-page="history">
+      <span>📋</span> History
+    </button>
+    <button class="nav-item" onclick="app.showPage('admin')" data-page="admin">
+      <span>⚙️</span> Admin
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
