@@ -1,10 +1,13 @@
-name: Seed Database
+name: Deploy to Cloudflare Pages
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  seed:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,26 +22,42 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create D1 database (safe if already exists)
-        run: npx wrangler d1 create sound-inventory || echo "Database already exists, continuing..."
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler pages deploy public --project-name=sound-inventory-tracker --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy database schema
+      - name: Bind D1 database to Pages project
+        run: |
+          DB_ID=$(npx wrangler d1 list --json 2>/dev/null | jq -r '.[] | select(.name == "sound-inventory") | .uuid')
+          echo "Binding DB ID: $DB_ID"
+          curl -s -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/sound-inventory-tracker" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"deployment_configs\": {
+                \"production\": {
+                  \"d1_databases\": { \"DB\": { \"id\": \"$DB_ID\" } },
+                  \"env_vars\": {
+                    \"ADMIN_PASSWORD\": { \"value\": \"changeme\" }
+                  }
+                },
+                \"preview\": {
+                  \"d1_databases\": { \"DB\": { \"id\": \"$DB_ID\" } }
+                }
+              }
+            }" | jq '.success, .errors'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy schema to D1
         run: npx wrangler d1 execute sound-inventory --file database/schema.sql --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Generate seed SQL from Excel
-        run: npm run migrate
-
-      - name: Seed equipment data into D1
-        run: npx wrangler d1 execute sound-inventory --file database/migrations/001_initial_data.sql --remote
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Done
-        run: echo "✅ Database seeded with all equipment from Excel!"
+        run: echo "✅ Deployed! https://sound-inventory-tracker.pages.dev"
