@@ -1,0 +1,20 @@
+{
+  "name": "sound-inventory-tracker",
+  "version": "1.0.0",
+  "description": "Live sound equipment inventory tracker for multi-venue performance center",
+  "main": "src/backend/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate": "node src/scripts/migrate-excel.js"
+  },
+  "author": "NCPA Sound Department",
+  "license": "MIT",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "wrangler": "^3.29.0"
+  }
+}

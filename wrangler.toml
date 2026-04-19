@@ -1,0 +1,31 @@
+name = "sound-inventory-tracker"
+main = "src/backend/index.js"
+compatibility_date = "2024-04-18"
+type = "service"
+
+# Default (local development)
+[[d1_databases]]
+binding = "DB"
+database_name = "sound-inventory-local"
+database_id = "local"
+
+[vars]
+ADMIN_PASSWORD = "change-me-in-production"
+ENVIRONMENT = "development"
+
+# Daily cron to clean up movement history older than 30 days for returned items
+[triggers]
+crons = ["0 0 * * *"]
+
+# Production environment
+[env.production]
+name = "sound-inventory-tracker"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "sound-inventory"
+database_id = "YOUR_PROD_DATABASE_ID"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+# Set ADMIN_PASSWORD via Cloudflare dashboard secrets, not here
