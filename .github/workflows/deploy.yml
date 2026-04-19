@@ -94,9 +94,11 @@ jobs:
         run: wrangler d1 execute "$DB_NAME" --remote --file=db/seed.sql
 
       # ---- 5. Deploy Pages ----
-      # wrangler pages deploy creates the project automatically if it doesn't
-      # exist; project name == subdomain, so this always lands at
-      # inventory-tracker.pages.dev
+      # Create project if it doesn't already exist; || true ignores "already exists" error.
+      # Project name == subdomain → always inventory-tracker.pages.dev
+      - name: Create Pages project if needed
+        run: wrangler pages project create "$PROJECT_NAME" --production-branch=main 2>&1 || true
+
       - name: Deploy to Cloudflare Pages
         run: |
           wrangler pages deploy public \
