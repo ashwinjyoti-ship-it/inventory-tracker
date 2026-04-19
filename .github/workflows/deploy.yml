@@ -57,47 +57,11 @@ jobs:
           sed -i "s|PLACEHOLDER_D1_ID|$CLOUDFLARE_D1_DATABASE_ID|" wrangler.toml
           grep -A1 d1_databases wrangler.toml
 
-      # ---- 2. Reconcile Pages project so URL ends up <project>.pages.dev ----
-      # Lists existing Pages projects via the Cloudflare API. If a project
-      # named exactly "inventory-tracker" doesn't exist, we delete any
-      # collision-suffixed projects (e.g. inventory-tracker-9wp) so the bare
-      # subdomain frees up, then create a fresh one.
-      - name: Ensure Pages project named "${{ env.PROJECT_NAME }}" exists
-        run: |
-          set -euo pipefail
-          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects"
-          AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
-
-          PROJECTS=$(curl -fsSL -H "$AUTH" "$API?per_page=100")
-          echo "Existing projects:"; echo "$PROJECTS" | jq -r '.result[].name' || true
-
-          HAS_TARGET=$(echo "$PROJECTS" | jq -r --arg n "$PROJECT_NAME" '[.result[] | select(.name==$n)] | length')
-
-          if [ "$HAS_TARGET" = "0" ]; then
-            echo "Project '$PROJECT_NAME' not found; deleting collision-suffixed siblings…"
-            COLLISIONS=$(echo "$PROJECTS" | jq -r --arg n "$PROJECT_NAME" '.result[] | select(.name | startswith($n + "-")) | .name')
-            for p in $COLLISIONS; do
-              echo "Deleting stale project $p"
-              curl -fsSL -X DELETE -H "$AUTH" "$API/$p" || true
-            done
-
-            # Give Cloudflare a moment to release the freed subdomain slot.
-            sleep 5
-
-            echo "Creating $PROJECT_NAME via wrangler…"
-            wrangler pages project create "$PROJECT_NAME" --production-branch=main
-          else
-            echo "Project '$PROJECT_NAME' already exists."
-          fi
-
-          # Show resolved subdomain so you can see the URL in CI logs.
-          curl -fsSL -H "$AUTH" "$API/$PROJECT_NAME" | jq '.result | {name, subdomain, production_branch}'
-
-      # ---- 3. Apply schema (idempotent) ----
+      # ---- 2. Apply schema (idempotent) ----
       - name: Apply D1 schema
         run: wrangler d1 execute "$DB_NAME" --remote --file=db/schema.sql
 
-      # ---- 4. Optional: wipe data (re-seed) ----
+      # ---- 3. Optional: wipe data (re-seed) ----
       - name: Wipe data (movements, items) for re-seed
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.reseed == 'true' }}
         run: |
@@ -110,7 +74,7 @@ jobs:
             wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM settings;"
           fi
 
-      # ---- 5. Seed if items table is empty ----
+      # ---- 4. Seed if items table is empty ----
       - name: Check if seed needed
         id: seed_check
         run: |
@@ -129,7 +93,10 @@ jobs:
         if: ${{ steps.seed_check.outputs.needed == 'true' }}
         run: wrangler d1 execute "$DB_NAME" --remote --file=db/seed.sql
 
-      # ---- 6. Deploy Pages ----
+      # ---- 5. Deploy Pages ----
+      # wrangler pages deploy creates the project automatically if it doesn't
+      # exist; project name == subdomain, so this always lands at
+      # inventory-tracker.pages.dev
       - name: Deploy to Cloudflare Pages
         run: |
           wrangler pages deploy public \
@@ -139,8 +106,5 @@ jobs:
 
       - name: Print live URL
         run: |
-          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT_NAME"
-          AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
-          SUB=$(curl -fsSL -H "$AUTH" "$API" | jq -r '.result.subdomain')
-          echo "::notice::Mobile UI:  https://$SUB"
-          echo "::notice::Admin UI:   https://$SUB/admin"
+          echo "::notice::Mobile UI:  https://$PROJECT_NAME.pages.dev"
+          echo "::notice::Admin UI:   https://$PROJECT_NAME.pages.dev/admin"
