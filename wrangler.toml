@@ -2,7 +2,7 @@
 # database_id is substituted by the deploy workflow before `wrangler pages deploy`.
 name = "ls-inventory"
 compatibility_date = "2025-04-01"
-pages_build_output_dir = "public"
+pages_build_output_dir = "src/frontend"
 
 [[d1_databases]]
 binding = "DB"

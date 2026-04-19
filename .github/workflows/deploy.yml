@@ -4,21 +4,10 @@ on:
   push:
     branches:
       - main
-      - claude/sound-inventory-tracker-Ipn8S
     paths-ignore:
-      - "README.md"
-      - "Context.md"
+      - "context.md"
       - ".gitignore"
   workflow_dispatch:
-    inputs:
-      reseed:
-        description: "Wipe & re-seed D1 from db/seed.sql (DANGEROUS — clears all movements)"
-        required: false
-        default: "false"
-      reset_admin_password:
-        description: "Reset admin password to repo default (Lsi@123456 unless build_seed override)"
-        required: false
-        default: "false"
 
 concurrency:
   group: deploy-cloudflare
@@ -59,49 +48,15 @@ jobs:
 
       # ---- 2. Apply schema (idempotent) ----
       - name: Apply D1 schema
-        run: wrangler d1 execute "$DB_NAME" --remote --file=db/schema.sql
+        run: wrangler d1 execute "$DB_NAME" --remote --file=database/schema.sql
 
-      # ---- 3. Optional: wipe data (re-seed) ----
-      - name: Wipe data (movements, items) for re-seed
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.reseed == 'true' }}
-        run: |
-          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM movements;"
-          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM items;"
-          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM equipment_models;"
-          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM venues;"
-          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM crew;"
-          if [ "${{ github.event.inputs.reset_admin_password }}" = "true" ]; then
-            wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM settings;"
-          fi
-
-      # ---- 4. Seed if items table is empty ----
-      - name: Check if seed needed
-        id: seed_check
-        run: |
-          set -euo pipefail
-          OUT=$(wrangler d1 execute "$DB_NAME" --remote --json --command "SELECT COUNT(*) AS c FROM items;")
-          echo "$OUT" | head -c 800
-          COUNT=$(echo "$OUT" | jq -r '.[0].results[0].c // 0')
-          echo "Items currently in DB: $COUNT"
-          if [ "$COUNT" = "0" ]; then
-            echo "needed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "needed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Seed D1 (initial data)
-        if: ${{ steps.seed_check.outputs.needed == 'true' }}
-        run: wrangler d1 execute "$DB_NAME" --remote --file=db/seed.sql
-
-      # ---- 5. Deploy Pages ----
-      # Create project if it doesn't already exist; || true ignores "already exists" error.
-      # Project name == subdomain → always inventory-tracker.pages.dev
+      # ---- 3. Deploy Pages ----
       - name: Create Pages project if needed
         run: wrangler pages project create "$PROJECT_NAME" --production-branch=main 2>&1 || true
 
       - name: Deploy to Cloudflare Pages
         run: |
-          wrangler pages deploy public \
+          wrangler pages deploy src/frontend \
             --project-name="$PROJECT_NAME" \
             --branch=main \
             --commit-dirty=true

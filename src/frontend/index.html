@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Sound Inventory Tracker</title>
+  <link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+  <header>
+    <div class="header-row">
+      <div>
+        <h1>Sound Inventory Tracker</h1>
+        <div id="user-info" class="text-small text-muted"></div>
+      </div>
+      <button class="btn btn-small btn-secondary" onclick="app.showPage('admin')">Admin</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Home Page -->
+    <div id="home-page" class="page">
+      <h2>Welcome to Sound Inventory Tracker</h2>
+      <p class="text-small text-muted mb-2">Manage equipment across venues</p>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('checkout')">
+          <div class="list-item-content">
+            <div class="list-item-title">Check Out Equipment</div>
+            <div class="list-item-subtitle">Take equipment from a venue</div>
+          </div>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('return')">
+          <div class="list-item-content">
+            <div class="list-item-title">Return Equipment</div>
+            <div class="list-item-subtitle">Return checked out items</div>
+          </div>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('history')">
+          <div class="list-item-content">
+            <div class="list-item-title">Movement History</div>
+            <div class="list-item-subtitle">View all movements and history</div>
+          </div>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('alerts')">
+          <div class="list-item-content">
+            <div class="list-item-title">Unreturned Items</div>
+            <div class="list-item-subtitle">Equipment not returned after 5 days</div>
+          </div>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="list-item" onclick="app.showPage('admin')">
+          <div class="list-item-content">
+            <div class="list-item-title">Admin Panel</div>
+            <div class="list-item-subtitle">Manage venues, crew and settings</div>
+          </div>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <div id="quick-stats" class="card"></div>
+    </div>
+
+    <!-- Checkout Page -->
+    <div id="checkout-page" class="page hidden">
+      <h2>Check Out Equipment</h2>
+
+      <div class="form-group">
+        <label for="checkout-crew">Crew Member *</label>
+        <select id="checkout-crew" required>
+          <option value="">-- Select Crew Member --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-from">From Venue *</label>
+        <select id="checkout-from" required>
+          <option value="">-- Select Venue --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-to">To Venue *</label>
+        <select id="checkout-to" required>
+          <option value="">-- Select Destination --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Select Equipment</label>
+        <div id="checkout-items" class="card"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="checkout-notes">Notes (Optional)</label>
+        <textarea id="checkout-notes" placeholder="Any additional notes..."></textarea>
+      </div>
+
+      <button class="btn btn-success btn-block" id="checkout-confirm">Check Out Selected Items</button>
+      <button class="btn btn-secondary btn-block" onclick="app.showPage('home')">Cancel</button>
+    </div>
+
+    <!-- Return / Move Page -->
+    <div id="return-page" class="page hidden">
+      <h2>Return / Move Equipment</h2>
+
+      <!-- Tab toggle -->
+      <div class="tab-bar mb-2">
+        <button class="tab-btn active" id="tab-return" onclick="app.switchTab('return')">Return to Base</button>
+        <button class="tab-btn" id="tab-move" onclick="app.switchTab('move')">Move to Another Venue</button>
+      </div>
+
+      <!-- Shared: crew selector -->
+      <div class="form-group">
+        <label for="return-crew">Crew Member *</label>
+        <select id="return-crew" required>
+          <option value="">-- Select Crew Member --</option>
+        </select>
+      </div>
+
+      <!-- Return to Base section -->
+      <div id="section-return">
+        <p class="text-small text-muted mb-2">Selected items will be sent back to their home venue.</p>
+
+        <div class="form-group">
+          <label>Items Currently Out</label>
+          <div id="return-items" class="card"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="return-notes">Notes (Optional)</label>
+          <textarea id="return-notes" placeholder="Any additional notes..."></textarea>
+        </div>
+
+        <button class="btn btn-success btn-block" id="return-confirm">Return to Base</button>
+      </div>
+
+      <!-- Move to Another Venue section -->
+      <div id="section-move" class="hidden">
+        <div class="form-group">
+          <label for="move-to">Move To Venue *</label>
+          <select id="move-to" required>
+            <option value="">-- Select Destination --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Items Currently Out</label>
+          <div id="move-items" class="card"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="move-notes">Notes (Optional)</label>
+          <textarea id="move-notes" placeholder="Any additional notes..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="move-confirm">Move Items</button>
+      </div>
+
+      <button class="btn btn-secondary btn-block" onclick="app.showPage('home')">Cancel</button>
+    </div>
+
+    <!-- History Page -->
+    <div id="history-page" class="page hidden">
+      <h2>Movement History</h2>
+
+      <!-- Search -->
+      <div class="form-group">
+        <input type="search" id="history-search" placeholder="Search equipment, crew, venue...">
+      </div>
+
+      <!-- Quick date range -->
+      <div class="tab-bar mb-2">
+        <button class="tab-btn" id="hdate-today" onclick="app.setHistoryDate('today')">Today</button>
+        <button class="tab-btn" id="hdate-week"  onclick="app.setHistoryDate('week')">Week</button>
+        <button class="tab-btn active" id="hdate-month" onclick="app.setHistoryDate('month')">Month</button>
+        <button class="tab-btn" id="hdate-all"   onclick="app.setHistoryDate('all')">All</button>
+      </div>
+
+      <!-- Crew filter -->
+      <div class="form-group">
+        <label for="history-filter">Crew Member</label>
+        <select id="history-filter">
+          <option value="">All Crew Members</option>
+        </select>
+      </div>
+
+      <div id="history-list"></div>
+    </div>
+
+    <!-- Alerts Page -->
+    <div id="alerts-page" class="page hidden">
+      <h2>Unreturned Items Alert</h2>
+      <p class="text-small text-muted mb-2">Equipment not returned after 5 days</p>
+
+      <div id="alerts-list" class="card"></div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="admin-page" class="page hidden">
+      <h2>Admin Panel</h2>
+
+      <div id="admin-auth">
+        <div class="form-group">
+          <label for="admin-password">Admin Password</label>
+          <input type="password" id="admin-password" placeholder="Enter admin password">
+        </div>
+        <button class="btn btn-primary btn-block" id="admin-login">Login</button>
+      </div>
+
+      <div id="admin-content" class="hidden">
+
+        <!-- Venues Section -->
+        <div class="card mb-3">
+          <h3>Manage Venues</h3>
+          <p class="text-small text-muted mb-2">Add new venues (e.g. Outdoor Stage A) or remove ones no longer in use.</p>
+
+          <div class="form-group mt-2">
+            <label for="venue-name">New Venue Name</label>
+            <input type="text" id="venue-name" placeholder="e.g., Outdoor Stage A">
+          </div>
+
+          <div class="form-group">
+            <label for="venue-desc">Description (optional)</label>
+            <input type="text" id="venue-desc" placeholder="e.g., North lawn outdoor area">
+          </div>
+
+          <button class="btn btn-primary btn-block" id="venue-add">Add Venue</button>
+
+          <div id="venues-list" class="mt-2"></div>
+        </div>
+
+        <!-- Crew Section -->
+        <div class="card mb-3">
+          <h3>Manage Crew Members</h3>
+          <p class="text-small text-muted mb-2">Add crew members so they appear in the dropdown. Deactivate rather than delete to preserve history.</p>
+
+          <div class="form-group mt-2">
+            <label for="crew-name">New Crew Member Name</label>
+            <input type="text" id="crew-name" placeholder="e.g., John Smith">
+          </div>
+
+          <button class="btn btn-primary btn-block" id="crew-add">Add Crew Member</button>
+
+          <div id="crew-list" class="mt-2"></div>
+        </div>
+
+        <!-- Change Password Section -->
+        <div class="card mb-3">
+          <h3>Change Admin Password</h3>
+          <p class="text-small text-muted mb-2">Update the password used to access this admin panel.</p>
+
+          <div class="form-group mt-2">
+            <label for="pw-new">New Password</label>
+            <input type="password" id="pw-new" placeholder="New password (min 4 characters)">
+          </div>
+
+          <div class="form-group">
+            <label for="pw-confirm">Confirm New Password</label>
+            <input type="password" id="pw-confirm" placeholder="Repeat new password">
+          </div>
+
+          <button class="btn btn-warning btn-block" id="pw-change">Change Password</button>
+        </div>
+
+        <button class="btn btn-secondary btn-block mt-3" id="admin-logout">Logout</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Navigation -->
+  <nav>
+    <button class="nav-item active" onclick="app.showPage('home')" data-page="home">
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="app.showPage('checkout')" data-page="checkout">
+      <span>Checkout</span>
+    </button>
+    <button class="nav-item" onclick="app.showPage('return')" data-page="return">
+      <span>Return</span>
+    </button>
+    <button class="nav-item" onclick="app.showPage('history')" data-page="history">
+      <span>History</span>
+    </button>
+    <button class="nav-item" onclick="app.showPage('admin')" data-page="admin">
+      <span>Admin</span>
+    </button>
+  </nav>
+
+  <script src="js/storage.js?v=5"></script>
+  <script src="js/api.js?v=5"></script>
+  <script src="js/ui.js?v=5"></script>
+  <script src="js/app.js?v=5"></script>
+</body>
+</html>
