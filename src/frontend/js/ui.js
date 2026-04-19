@@ -84,9 +84,9 @@ class UI {
   }
 
   // Show all currently checked-out items (filtered by crew member if selected)
-  async loadReturnItems(crewMemberId) {
+  async loadReturnItems(crewMemberId, containerId = 'return-items') {
     try {
-      const container = document.getElementById('return-items');
+      const container = document.getElementById(containerId);
 
       // Get all checked-out items
       const data = await api.getItems({ status: 'checked_out' });
@@ -143,18 +143,22 @@ class UI {
       data.movements.forEach(m => {
         const item = document.createElement('div');
         item.className = 'list-item';
-        const typeText = m.movement_type === 'checkout' ? 'Checked out' : 'Returned';
+
+        const typeConfig = {
+          checkout: { label: 'Checked Out', badge: 'badge-warning' },
+          move:     { label: 'Moved',        badge: 'badge-info' },
+          return:   { label: 'Returned',     badge: 'badge-success' },
+        };
+        const { label, badge } = typeConfig[m.movement_type] || { label: m.movement_type, badge: 'badge-info' };
 
         item.innerHTML = `
           <div class="list-item-content">
             <div class="list-item-title">${m.equipment_name} #${m.item_number}</div>
-            <div class="list-item-subtitle">${typeText} by ${m.crew_member_name}</div>
+            <div class="list-item-subtitle">${label} by ${m.crew_member_name}</div>
             <div class="text-small text-muted">${m.from_venue_name} &rarr; ${m.to_venue_name}</div>
             <div class="text-small text-muted">${new Date(m.logged_at).toLocaleString()}</div>
           </div>
-          <span class="badge ${m.movement_type === 'checkout' ? 'badge-warning' : 'badge-success'}">
-            ${typeText}
-          </span>
+          <span class="badge ${badge}">${label}</span>
         `;
         container.appendChild(item);
       });

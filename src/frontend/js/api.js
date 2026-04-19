@@ -60,8 +60,18 @@ class API {
     });
   }
 
-  returnItems(itemIds, crewMemberId, toVenueId, notes = '') {
+  // Return items to their home venues
+  returnItems(itemIds, crewMemberId, notes = '') {
     return this.request('POST', '/movements/return', {
+      item_ids: itemIds,
+      crew_member_id: crewMemberId,
+      notes,
+    });
+  }
+
+  // Move items to a different venue (not their home base)
+  moveItems(itemIds, crewMemberId, toVenueId, notes = '') {
+    return this.request('POST', '/movements/move', {
       item_ids: itemIds,
       crew_member_id: crewMemberId,
       to_venue_id: toVenueId,

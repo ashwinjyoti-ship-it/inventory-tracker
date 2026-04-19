@@ -100,10 +100,17 @@
       <button class="btn btn-secondary btn-block" onclick="app.showPage('home')">Cancel</button>
     </div>
 
-    <!-- Return Page -->
+    <!-- Return / Move Page -->
     <div id="return-page" class="page hidden">
-      <h2>Return Equipment</h2>
+      <h2>Return / Move Equipment</h2>
 
+      <!-- Tab toggle -->
+      <div class="tab-bar mb-2">
+        <button class="tab-btn active" id="tab-return" onclick="app.switchTab('return')">Return to Base</button>
+        <button class="tab-btn" id="tab-move" onclick="app.switchTab('move')">Move to Another Venue</button>
+      </div>
+
+      <!-- Shared: crew selector -->
       <div class="form-group">
         <label for="return-crew">Crew Member *</label>
         <select id="return-crew" required>
@@ -111,24 +118,45 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="return-to">Return To *</label>
-        <select id="return-to" required>
-          <option value="">-- Select Venue --</option>
-        </select>
+      <!-- Return to Base section -->
+      <div id="section-return">
+        <p class="text-small text-muted mb-2">Selected items will be sent back to their home venue.</p>
+
+        <div class="form-group">
+          <label>Items Currently Out</label>
+          <div id="return-items" class="card"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="return-notes">Notes (Optional)</label>
+          <textarea id="return-notes" placeholder="Any additional notes..."></textarea>
+        </div>
+
+        <button class="btn btn-success btn-block" id="return-confirm">Return to Base</button>
       </div>
 
-      <div class="form-group">
-        <label>Items Currently Out</label>
-        <div id="return-items" class="card"></div>
+      <!-- Move to Another Venue section -->
+      <div id="section-move" class="hidden">
+        <div class="form-group">
+          <label for="move-to">Move To Venue *</label>
+          <select id="move-to" required>
+            <option value="">-- Select Destination --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Items Currently Out</label>
+          <div id="move-items" class="card"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="move-notes">Notes (Optional)</label>
+          <textarea id="move-notes" placeholder="Any additional notes..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="move-confirm">Move Items</button>
       </div>
 
-      <div class="form-group">
-        <label for="return-notes">Notes (Optional)</label>
-        <textarea id="return-notes" placeholder="Any additional notes..."></textarea>
-      </div>
-
-      <button class="btn btn-success btn-block" id="return-confirm">Return Selected Items</button>
       <button class="btn btn-secondary btn-block" onclick="app.showPage('home')">Cancel</button>
     </div>
 

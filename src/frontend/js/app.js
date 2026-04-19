@@ -3,6 +3,7 @@
 class App {
   constructor() {
     this.currentPage = 'home';
+    this.activeReturnTab = 'return'; // 'return' | 'move'
     this.init();
   }
 
@@ -21,8 +22,9 @@ class App {
       }
 
       if (e.target.id === 'return-crew') {
-        const crewId = e.target.value;
-        ui.loadReturnItems(crewId || null);
+        const crewId = e.target.value || null;
+        const containerId = this.activeReturnTab === 'return' ? 'return-items' : 'move-items';
+        ui.loadReturnItems(crewId, containerId);
       }
 
       if (e.target.id === 'history-filter') {
@@ -33,6 +35,7 @@ class App {
 
     document.getElementById('checkout-confirm')?.addEventListener('click', () => this.handleCheckout());
     document.getElementById('return-confirm')?.addEventListener('click', () => this.handleReturn());
+    document.getElementById('move-confirm')?.addEventListener('click', () => this.handleMove());
     document.getElementById('admin-login')?.addEventListener('click', () => this.handleAdminLogin());
     document.getElementById('admin-logout')?.addEventListener('click', () => this.handleAdminLogout());
     document.getElementById('venue-add')?.addEventListener('click', () => this.handleVenueAdd());
@@ -105,9 +108,11 @@ class App {
         break;
 
       case 'return':
+        this.activeReturnTab = 'return';
+        this.applyReturnTab();
         ui.loadCrewMembers('return-crew');
-        ui.loadVenues('return-to');
-        ui.loadReturnItems(null);
+        ui.loadVenues('move-to');
+        ui.loadReturnItems(null, 'return-items');
         break;
 
       case 'history':
@@ -134,6 +139,27 @@ class App {
         break;
       }
     }
+  }
+
+  switchTab(tab) {
+    this.activeReturnTab = tab;
+    this.applyReturnTab();
+
+    // Reload items for the newly active tab
+    const crewId = document.getElementById('return-crew').value || null;
+    if (tab === 'return') {
+      ui.loadReturnItems(crewId, 'return-items');
+    } else {
+      ui.loadReturnItems(crewId, 'move-items');
+    }
+  }
+
+  applyReturnTab() {
+    const isReturn = this.activeReturnTab === 'return';
+    document.getElementById('tab-return').classList.toggle('active', isReturn);
+    document.getElementById('tab-move').classList.toggle('active', !isReturn);
+    document.getElementById('section-return').classList.toggle('hidden', !isReturn);
+    document.getElementById('section-move').classList.toggle('hidden', isReturn);
   }
 
   async handleCheckout() {
@@ -184,15 +210,14 @@ class App {
 
   async handleReturn() {
     const crewId = document.getElementById('return-crew').value;
-    const toVenueId = document.getElementById('return-to').value;
     const notes = document.getElementById('return-notes').value;
 
-    if (!crewId || !toVenueId) {
-      ui.showError('Please fill in all required fields');
+    if (!crewId) {
+      ui.showError('Please select a crew member');
       return;
     }
 
-    const itemIds = Array.from(document.querySelectorAll('.return-item:checked'))
+    const itemIds = Array.from(document.querySelectorAll('#return-items .return-item:checked'))
       .map(c => parseInt(c.value));
 
     if (itemIds.length === 0) {
@@ -201,24 +226,52 @@ class App {
     }
 
     try {
-      await api.returnItems(itemIds, parseInt(crewId), parseInt(toVenueId), notes);
-      ui.showSuccess(`${itemIds.length} item(s) returned successfully!`);
+      await api.returnItems(itemIds, parseInt(crewId), notes);
+      ui.showSuccess(`${itemIds.length} item(s) returned to base!`);
       storage.clearCache('items');
-
-      // Reset form to a clean state for a new entry
       this.resetReturnForm();
-
       setTimeout(() => this.showPage('home'), 1000);
     } catch (error) {
       ui.showError('Return failed: ' + error.message);
     }
   }
 
+  async handleMove() {
+    const crewId = document.getElementById('return-crew').value;
+    const toVenueId = document.getElementById('move-to').value;
+    const notes = document.getElementById('move-notes').value;
+
+    if (!crewId || !toVenueId) {
+      ui.showError('Please select a crew member and destination venue');
+      return;
+    }
+
+    const itemIds = Array.from(document.querySelectorAll('#move-items .return-item:checked'))
+      .map(c => parseInt(c.value));
+
+    if (itemIds.length === 0) {
+      ui.showError('Please select at least one item to move');
+      return;
+    }
+
+    try {
+      await api.moveItems(itemIds, parseInt(crewId), parseInt(toVenueId), notes);
+      ui.showSuccess(`${itemIds.length} item(s) moved successfully!`);
+      storage.clearCache('items');
+      this.resetReturnForm();
+      setTimeout(() => this.showPage('home'), 1000);
+    } catch (error) {
+      ui.showError('Move failed: ' + error.message);
+    }
+  }
+
   resetReturnForm() {
     document.getElementById('return-crew').value = '';
-    document.getElementById('return-to').value = '';
+    document.getElementById('move-to').value = '';
     document.getElementById('return-notes').value = '';
+    document.getElementById('move-notes').value = '';
     document.getElementById('return-items').innerHTML = '';
+    document.getElementById('move-items').innerHTML = '';
   }
 
   handleAdminLogin() {

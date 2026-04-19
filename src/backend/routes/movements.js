@@ -56,8 +56,64 @@ export async function handleMovementsRequest(request, db, env) {
     }
   }
 
-  // POST /api/movements/return
+  // POST /api/movements/return — returns items to their home venue
   if (pathname === '/api/movements/return' && request.method === 'POST') {
+    try {
+      const body = await getJsonBody(request);
+
+      if (!body || !body.item_ids || !Array.isArray(body.item_ids) || body.item_ids.length === 0) {
+        return errorResponse('Invalid request: item_ids array required', 400);
+      }
+
+      if (!body.crew_member_id) {
+        return errorResponse('Invalid request: crew_member_id required', 400);
+      }
+
+      const movements = [];
+
+      for (const itemId of body.item_ids) {
+        const item = await db.getItem(itemId);
+        if (!item) {
+          return errorResponse(`Item ${itemId} not found`, 404);
+        }
+
+        // Each item returns to its own home venue
+        const toVenueId = item.home_venue_id;
+
+        const result = await db.createMovement(
+          itemId,
+          body.crew_member_id,
+          item.current_venue_id,
+          toVenueId,
+          'return',
+          body.notes || ''
+        );
+
+        await db.updateItemLocation(itemId, toVenueId);
+
+        // Stamp all open movements so they expire in 30 days
+        await db.markReturnedToBase(itemId);
+
+        movements.push({
+          item_id: itemId,
+          movement_id: result.meta.last_row_id,
+          to_venue_id: toVenueId,
+        });
+      }
+
+      return jsonResponse({
+        success: true,
+        message: `${movements.length} item(s) returned to base`,
+        movements,
+      }, 201);
+    } catch (error) {
+      console.error('Error creating return:', error);
+      return errorResponse('Failed to create return', 500);
+    }
+  }
+
+  // POST /api/movements/move — moves items to another venue (not home, stays checked_out)
+  if (pathname === '/api/movements/move' && request.method === 'POST') {
     try {
       const body = await getJsonBody(request);
 
@@ -77,40 +133,32 @@ export async function handleMovementsRequest(request, db, env) {
           return errorResponse(`Item ${itemId} not found`, 404);
         }
 
-        // Create return movement from current location
         const result = await db.createMovement(
           itemId,
           body.crew_member_id,
           item.current_venue_id,
           body.to_venue_id,
-          'return',
+          'move',
           body.notes || ''
         );
 
-        // Update item location and mark as available
-        await db.updateItemLocation(itemId, body.to_venue_id);
-
-        // If the item is being returned to its home venue, stamp all open movements
-        // so they are eligible for cleanup after 30 days.
-        if (body.to_venue_id === item.home_venue_id) {
-          await db.markReturnedToBase(itemId);
-        }
+        // Item stays checked_out but location updates
+        await db.updateItemForCheckout(itemId, body.to_venue_id);
 
         movements.push({
           item_id: itemId,
           movement_id: result.meta.last_row_id,
-          returned_to_base: body.to_venue_id === item.home_venue_id,
         });
       }
 
       return jsonResponse({
         success: true,
-        message: `${movements.length} item(s) returned`,
+        message: `${movements.length} item(s) moved`,
         movements,
       }, 201);
     } catch (error) {
-      console.error('Error creating return:', error);
-      return errorResponse('Failed to create return', 500);
+      console.error('Error creating move:', error);
+      return errorResponse('Failed to move items', 500);
     }
   }
 
