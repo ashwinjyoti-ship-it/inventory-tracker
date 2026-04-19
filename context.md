@@ -99,19 +99,27 @@ Movement records are kept indefinitely while an item is out on a trip. Once an i
 
 ## Deployment
 
-The app runs on Cloudflare Workers (backend API + frontend static files served together).
+The app runs on **Cloudflare Pages** with **Pages Functions** for the backend API. Frontend static files live in `src/frontend/`; the backend is a single catch-all route at `functions/api/[[route]].js` that dispatches to `src/backend/routes/*.js`. Data lives in a Cloudflare D1 database called `sound-inventory`.
 
-**Auto-deploy:** Every merge to the `main` branch on GitHub triggers an automatic deployment via GitHub Actions. No manual steps needed.
+**Live URLs:**
+- Crew app: https://ls-inventory.pages.dev
+- Admin panel: https://ls-inventory.pages.dev/admin
+
+**Auto-deploy:** Every push to the `main` branch on GitHub triggers an automatic deployment via GitHub Actions (`.github/workflows/deploy.yml`). The workflow:
+1. Substitutes the D1 database ID into `wrangler.toml` from the `CLOUDFLARE_D1_DATABASE_ID` secret (never hardcoded).
+2. Applies `database/schema.sql` to D1 (idempotent — safe to re-run).
+3. Creates the Pages project if it does not yet exist.
+4. Deploys `src/frontend` as the static assets; Pages Functions are picked up automatically.
 
 **Required GitHub secrets** (Settings → Secrets → Actions):
 | Secret | Value |
 |---|---|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers + D1 permissions |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Pages + D1 permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
 | `CLOUDFLARE_D1_DATABASE_ID` | The D1 database UUID from the Cloudflare dashboard |
 
-**Initial database setup** (one-time only, already done):
-The database schema and initial data were seeded manually when the project was first set up. This does not run on every deploy.
+**Initial data seeding** (one-time only, already done):
+6 venues, 12 crew members, 115 equipment models, and 1192 items were seeded from `NCPA_Inventory_All.xlsx` via `src/scripts/build_seed.py` → `database/seed.sql`. The deploy workflow does **not** re-seed on every deploy — the schema step is idempotent, but data seeding is a one-shot local operation. If the database is ever wiped and needs to be re-seeded, run `build_seed.py` then apply `database/seed.sql` via `wrangler d1 execute sound-inventory --remote --file=database/seed.sql`.
 
 ---
 
