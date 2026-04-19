@@ -81,10 +81,11 @@ jobs:
               curl -fsSL -X DELETE -H "$AUTH" "$API/$p" || true
             done
 
-            echo "Creating $PROJECT_NAME…"
-            curl -fsSL -X POST -H "$AUTH" -H "Content-Type: application/json" "$API" \
-              -d "$(jq -n --arg n "$PROJECT_NAME" '{name:$n, production_branch:"main"}')" \
-              | jq '.result | {name, subdomain}'
+            # Give Cloudflare a moment to release the freed subdomain slot.
+            sleep 5
+
+            echo "Creating $PROJECT_NAME via wrangler…"
+            wrangler pages project create "$PROJECT_NAME" --production-branch=main
           else
             echo "Project '$PROJECT_NAME' already exists."
           fi
