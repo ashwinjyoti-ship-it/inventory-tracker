@@ -1,0 +1,145 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+      - claude/sound-inventory-tracker-Ipn8S
+    paths-ignore:
+      - "README.md"
+      - "Context.md"
+      - ".gitignore"
+  workflow_dispatch:
+    inputs:
+      reseed:
+        description: "Wipe & re-seed D1 from db/seed.sql (DANGEROUS — clears all movements)"
+        required: false
+        default: "false"
+      reset_admin_password:
+        description: "Reset admin password to repo default (Lsi@123456 unless build_seed override)"
+        required: false
+        default: "false"
+
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+  PROJECT_NAME: inventory-tracker
+  DB_NAME: sound-inventory
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install wrangler
+        run: npm i -g wrangler@3
+
+      # ---- 1. Render wrangler.toml with the real D1 database ID ----
+      - name: Inject D1 database ID into wrangler.toml
+        run: |
+          if [ -z "$CLOUDFLARE_D1_DATABASE_ID" ]; then
+            echo "::error::CLOUDFLARE_D1_DATABASE_ID secret is empty"; exit 1
+          fi
+          sed -i "s|PLACEHOLDER_D1_ID|$CLOUDFLARE_D1_DATABASE_ID|" wrangler.toml
+          grep -A1 d1_databases wrangler.toml
+
+      # ---- 2. Reconcile Pages project so URL ends up <project>.pages.dev ----
+      # Lists existing Pages projects via the Cloudflare API. If a project
+      # named exactly "inventory-tracker" doesn't exist, we delete any
+      # collision-suffixed projects (e.g. inventory-tracker-9wp) so the bare
+      # subdomain frees up, then create a fresh one.
+      - name: Ensure Pages project named "${{ env.PROJECT_NAME }}" exists
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects"
+          AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+
+          PROJECTS=$(curl -fsSL -H "$AUTH" "$API?per_page=100")
+          echo "Existing projects:"; echo "$PROJECTS" | jq -r '.result[].name' || true
+
+          HAS_TARGET=$(echo "$PROJECTS" | jq -r --arg n "$PROJECT_NAME" '[.result[] | select(.name==$n)] | length')
+
+          if [ "$HAS_TARGET" = "0" ]; then
+            echo "Project '$PROJECT_NAME' not found; deleting collision-suffixed siblings…"
+            COLLISIONS=$(echo "$PROJECTS" | jq -r --arg n "$PROJECT_NAME" '.result[] | select(.name | startswith($n + "-")) | .name')
+            for p in $COLLISIONS; do
+              echo "Deleting stale project $p"
+              curl -fsSL -X DELETE -H "$AUTH" "$API/$p" || true
+            done
+
+            echo "Creating $PROJECT_NAME…"
+            curl -fsSL -X POST -H "$AUTH" -H "Content-Type: application/json" "$API" \
+              -d "$(jq -n --arg n "$PROJECT_NAME" '{name:$n, production_branch:"main"}')" \
+              | jq '.result | {name, subdomain}'
+          else
+            echo "Project '$PROJECT_NAME' already exists."
+          fi
+
+          # Show resolved subdomain so you can see the URL in CI logs.
+          curl -fsSL -H "$AUTH" "$API/$PROJECT_NAME" | jq '.result | {name, subdomain, production_branch}'
+
+      # ---- 3. Apply schema (idempotent) ----
+      - name: Apply D1 schema
+        run: wrangler d1 execute "$DB_NAME" --remote --file=db/schema.sql
+
+      # ---- 4. Optional: wipe data (re-seed) ----
+      - name: Wipe data (movements, items) for re-seed
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.reseed == 'true' }}
+        run: |
+          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM movements;"
+          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM items;"
+          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM equipment_models;"
+          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM venues;"
+          wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM crew;"
+          if [ "${{ github.event.inputs.reset_admin_password }}" = "true" ]; then
+            wrangler d1 execute "$DB_NAME" --remote --command "DELETE FROM settings;"
+          fi
+
+      # ---- 5. Seed if items table is empty ----
+      - name: Check if seed needed
+        id: seed_check
+        run: |
+          set -euo pipefail
+          OUT=$(wrangler d1 execute "$DB_NAME" --remote --json --command "SELECT COUNT(*) AS c FROM items;")
+          echo "$OUT" | head -c 800
+          COUNT=$(echo "$OUT" | jq -r '.[0].results[0].c // 0')
+          echo "Items currently in DB: $COUNT"
+          if [ "$COUNT" = "0" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Seed D1 (initial data)
+        if: ${{ steps.seed_check.outputs.needed == 'true' }}
+        run: wrangler d1 execute "$DB_NAME" --remote --file=db/seed.sql
+
+      # ---- 6. Deploy Pages ----
+      - name: Deploy to Cloudflare Pages
+        run: |
+          wrangler pages deploy public \
+            --project-name="$PROJECT_NAME" \
+            --branch=main \
+            --commit-dirty=true
+
+      - name: Print live URL
+        run: |
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT_NAME"
+          AUTH="Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+          SUB=$(curl -fsSL -H "$AUTH" "$API" | jq -r '.result.subdomain')
+          echo "::notice::Mobile UI:  https://$SUB"
+          echo "::notice::Admin UI:   https://$SUB/admin"

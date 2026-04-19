@@ -1,0 +1,14 @@
+{
+  "name": "inventory-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NCPA Sound Inventory Tracker — mobile + admin UI on Cloudflare Pages + D1.",
+  "scripts": {
+    "build:seed": "python3 scripts/build_seed.py",
+    "dev": "wrangler pages dev public --d1 DB=sound-inventory --local --persist-to=.wrangler/state",
+    "deploy": "wrangler pages deploy public --project-name=inventory-tracker --branch=main"
+  },
+  "devDependencies": {
+    "wrangler": "^3.95.0"
+  }
+}

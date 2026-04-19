@@ -1,0 +1,10 @@
+# NCPA Sound Inventory — Cloudflare Pages config.
+# database_id is substituted by the deploy workflow before `wrangler pages deploy`.
+name = "inventory-tracker"
+compatibility_date = "2025-04-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sound-inventory"
+database_id = "PLACEHOLDER_D1_ID"

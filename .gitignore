@@ -1,0 +1,8 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+*.log
+
+# wrangler.toml is committed with a placeholder D1 ID;
+# the deploy workflow renders it in-place. Don't ignore it.

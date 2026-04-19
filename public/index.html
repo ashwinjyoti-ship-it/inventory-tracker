@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>NCPA Sound Inventory</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>NCPA Sound Inventory</h1>
+      <div class="row">
+        <select id="crew-select" aria-label="Crew member">
+          <option value="">— select your name —</option>
+        </select>
+        <button id="change-crew" class="secondary" style="flex:none;">Change</button>
+      </div>
+      <div id="alert-banner" class="row small" style="margin-top:8px; display:none;">
+        <span class="tag bad" id="alert-count">0</span>
+        <span class="muted">items unreturned 5+ days · tap Alerts</span>
+      </div>
+    </header>
+
+    <main id="view-checkout" class="view">
+      <div class="panel">
+        <div class="field">
+          <label for="from-venue">Pick up from venue</label>
+          <select id="from-venue"><option value="">— select venue —</option></select>
+        </div>
+        <div class="field">
+          <label for="to-venue">Deliver to venue</label>
+          <select id="to-venue"><option value="">— select venue —</option></select>
+        </div>
+      </div>
+      <div class="search-row">
+        <input type="search" id="checkout-search" placeholder="Search items…" autocomplete="off" />
+      </div>
+      <div id="checkout-items" class="items-list"></div>
+    </main>
+
+    <main id="view-return" class="view" hidden>
+      <div class="panel">
+        <h2>Items you're holding</h2>
+        <div class="field">
+          <label>Where are they going?</label>
+          <div class="row">
+            <label class="row" style="margin:0; gap:6px; cursor:pointer;">
+              <input type="radio" name="return-dest" value="home" checked /> Back to Base (home venue)
+            </label>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <label class="row" style="margin:0; gap:6px; cursor:pointer;">
+              <input type="radio" name="return-dest" value="other" /> Another venue:
+            </label>
+            <select id="return-other-venue" disabled style="flex:1; min-width:160px;">
+              <option value="">— select venue —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="return-items" class="items-list"></div>
+    </main>
+
+    <main id="view-history" class="view" hidden>
+      <div class="panel">
+        <h2>Recent movements</h2>
+        <div id="history-list"></div>
+      </div>
+    </main>
+
+    <main id="view-alerts" class="view" hidden>
+      <div class="panel">
+        <h2>Unreturned 5+ days</h2>
+        <div id="alerts-list"></div>
+      </div>
+    </main>
+
+    <div id="action-bar" class="action-bar">
+      <span><span class="count" id="action-count">0</span> selected</span>
+      <button id="action-submit">Submit</button>
+    </div>
+
+    <nav class="tabbar" role="tablist">
+      <button data-view="checkout" class="active"><span class="icon">⬆</span>Checkout</button>
+      <button data-view="return"><span class="icon">⬇</span>Return</button>
+      <button data-view="history"><span class="icon">🕒</span>History</button>
+      <button data-view="alerts"><span class="icon">⚠</span>Alerts</button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
