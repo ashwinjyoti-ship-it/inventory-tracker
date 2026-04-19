@@ -20,7 +20,7 @@ across NCPA's venues, replacing untracked manual hand-offs by crew.
 | Frontend    | Vanilla HTML + CSS + JS (no frameworks)           |
 | Backend     | Cloudflare Pages Functions (Workers runtime)      |
 | Database    | Cloudflare D1 (SQLite at the edge)                |
-| Hosting     | Cloudflare Pages — `inventory-tracker.pages.dev`  |
+| Hosting     | Cloudflare Pages — `ls-inventory.pages.dev`  |
 | CI / deploy | GitHub Actions, auto-deploy on push to `main`     |
 
 ## Repo layout
@@ -108,7 +108,7 @@ Akshay, **Ashwin (head)**.
 - The workflow:
   1. Renders `wrangler.toml` with the real D1 ID.
   2. Reconciles the Cloudflare Pages project so the URL is exactly
-     `inventory-tracker.pages.dev` (deletes any collision-suffixed siblings,
+     `ls-inventory.pages.dev` (deletes any collision-suffixed siblings,
      creates `inventory-tracker` if missing).
   3. Applies `db/schema.sql` (idempotent).
   4. Seeds `db/seed.sql` only if the items table is empty.

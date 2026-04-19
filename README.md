@@ -5,8 +5,8 @@ Pages + D1, no frameworks.
 
 ## Live URLs
 
-- Mobile (crew): <https://inventory-tracker.pages.dev>
-- Admin: <https://inventory-tracker.pages.dev/admin>
+- Mobile (crew): <https://ls-inventory.pages.dev>
+- Admin: <https://ls-inventory.pages.dev/admin>
 
 ## What it does
 
