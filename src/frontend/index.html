@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Sound Inventory Tracker</title>
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
   <header>
@@ -80,18 +80,20 @@
     <div id="checkout-page" class="page hidden">
       <h2>Check Out Equipment</h2>
 
-      <div class="form-group">
-        <label for="checkout-crew">Crew Member *</label>
-        <select id="checkout-crew" required>
-          <option value="">-- Select Crew Member --</option>
-        </select>
-      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="checkout-crew">Crew Member *</label>
+          <select id="checkout-crew" required>
+            <option value="">-- Select Crew Member --</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="checkout-from">From Venue *</label>
-        <select id="checkout-from" required>
-          <option value="">-- Select Venue --</option>
-        </select>
+        <div class="form-group">
+          <label for="checkout-from">From Venue *</label>
+          <select id="checkout-from" required>
+            <option value="">-- Select Venue --</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group">
@@ -230,14 +232,16 @@
           <h3>Manage Venues</h3>
           <p class="text-small text-muted mb-2">Add new venues (e.g. Outdoor Stage A) or remove ones no longer in use.</p>
 
-          <div class="form-group mt-2">
-            <label for="venue-name">New Venue Name</label>
-            <input type="text" id="venue-name" placeholder="e.g., Outdoor Stage A">
-          </div>
+          <div class="form-row-2 mt-2">
+            <div class="form-group">
+              <label for="venue-name">New Venue Name</label>
+              <input type="text" id="venue-name" placeholder="e.g., Outdoor Stage A">
+            </div>
 
-          <div class="form-group">
-            <label for="venue-desc">Description (optional)</label>
-            <input type="text" id="venue-desc" placeholder="e.g., North lawn outdoor area">
+            <div class="form-group">
+              <label for="venue-desc">Description (optional)</label>
+              <input type="text" id="venue-desc" placeholder="e.g., North lawn outdoor area">
+            </div>
           </div>
 
           <button class="btn btn-primary btn-block" id="venue-add">Add Venue</button>
@@ -265,14 +269,16 @@
           <h3>Change Admin Password</h3>
           <p class="text-small text-muted mb-2">Update the password used to access this admin panel.</p>
 
-          <div class="form-group mt-2">
-            <label for="pw-new">New Password</label>
-            <input type="password" id="pw-new" placeholder="New password (min 4 characters)">
-          </div>
+          <div class="form-row-2 mt-2">
+            <div class="form-group">
+              <label for="pw-new">New Password</label>
+              <input type="password" id="pw-new" placeholder="New password (min 4 characters)">
+            </div>
 
-          <div class="form-group">
-            <label for="pw-confirm">Confirm New Password</label>
-            <input type="password" id="pw-confirm" placeholder="Repeat new password">
+            <div class="form-group">
+              <label for="pw-confirm">Confirm New Password</label>
+              <input type="password" id="pw-confirm" placeholder="Repeat new password">
+            </div>
           </div>
 
           <button class="btn btn-warning btn-block" id="pw-change">Change Password</button>
@@ -302,9 +308,9 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=5"></script>
-  <script src="js/api.js?v=5"></script>
-  <script src="js/ui.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/storage.js?v=6"></script>
+  <script src="js/api.js?v=6"></script>
+  <script src="js/ui.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
