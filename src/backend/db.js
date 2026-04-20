@@ -120,6 +120,19 @@ export class Database {
     return this.run(sql, [retentionDays]);
   }
 
+  // Admin: wipe all movements and reset every item to its home venue.
+  async clearAllHistory() {
+    return this.db.batch([
+      this.db.prepare(`DELETE FROM movements`),
+      this.db.prepare(
+        `UPDATE items
+         SET current_venue_id = home_venue_id,
+             status = 'available',
+             updated_at = CURRENT_TIMESTAMP`
+      ),
+    ]);
+  }
+
   async getMovements(filters = {}) {
     let sql = `
       SELECT m.*, i.item_number, e.name as equipment_name,

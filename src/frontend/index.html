@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Sound Inventory Tracker</title>
-  <link rel="stylesheet" href="css/style.css?v=8">
-  <link rel="stylesheet" href="css/skeu.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/skeu.css?v=9">
 </head>
 <body>
   <header>
@@ -309,6 +309,26 @@
           </div>
         </div>
 
+        <!-- Clear History Section -->
+        <div class="card collapsible collapsed mb-3" id="admin-history-card">
+          <button type="button" class="collapsible-header"
+                  onclick="app.toggleAdminSection('history')"
+                  aria-expanded="false" aria-controls="admin-history-body">
+            <div class="collapsible-title">
+              <h3>Clear All History</h3>
+              <p class="text-small text-muted">Delete all movement records and reset every item to its home venue. Use this to clean up test data.</p>
+            </div>
+            <span class="collapsible-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="collapsible-body" id="admin-history-body">
+            <p class="text-small mt-2 mb-2">
+              This action <strong>cannot be undone</strong>. It will delete every movement log and
+              mark all items as available at their home venue — including items currently checked out.
+            </p>
+            <button class="btn btn-danger btn-block" id="history-clear">Clear All History</button>
+          </div>
+        </div>
+
         <button class="btn btn-secondary btn-block mt-3" id="admin-logout">Logout</button>
       </div>
     </div>
@@ -333,9 +353,9 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=8"></script>
-  <script src="js/api.js?v=8"></script>
-  <script src="js/ui.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/storage.js?v=9"></script>
+  <script src="js/api.js?v=9"></script>
+  <script src="js/ui.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>
