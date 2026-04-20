@@ -39,9 +39,13 @@ export class Database {
       JOIN equipment e ON i.equipment_id = e.id
       JOIN venues v1 ON i.current_venue_id = v1.id
       JOIN venues v2 ON i.home_venue_id = v2.id
-      WHERE 1=1
+      WHERE i.is_active = 1
     `;
     const params = [];
+
+    if (!filters.status && !filters.include_under_repair) {
+      sql += ` AND i.status != 'under_repair'`;
+    }
 
     if (filters.status) {
       sql += ` AND i.status = ?`;
@@ -197,13 +201,17 @@ export class Database {
       SELECT i.*, e.name as equipment_name,
              c.name as crew_member_name,
              v.name as current_venue_name,
+             vh.name as home_venue_name,
              m.logged_at as checked_out_at,
              CAST((julianday('now') - julianday(m.logged_at)) AS INTEGER) as days_out
       FROM items i
       JOIN equipment e ON i.equipment_id = e.id
       JOIN venues v ON i.current_venue_id = v.id
+      JOIN venues vh ON i.home_venue_id = vh.id
       JOIN movements m ON i.id = m.item_id AND m.movement_type = 'checkout'
+      JOIN crew_members c ON m.crew_member_id = c.id
       WHERE i.status = 'checked_out'
+        AND i.is_active = 1
         AND m.id = (
           SELECT MAX(id) FROM movements WHERE item_id = i.id
         )
@@ -338,5 +346,82 @@ export class Database {
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
     `;
     return this.run(sql, [newPassword]);
+  }
+
+  async createEquipment(name, category) {
+    return this.run(`INSERT INTO equipment (name, category) VALUES (?, ?)`, [name, category]);
+  }
+
+  async addItems(equipmentId, homeVenueId, quantity) {
+    const row = await this.first(
+      `SELECT MAX(CAST(item_number AS INTEGER)) as max_num FROM items WHERE equipment_id = ?`,
+      [equipmentId]
+    );
+    const startNum = (row?.max_num ?? 0) + 1;
+    const statements = [];
+    for (let i = 0; i < quantity; i++) {
+      const itemNumber = String(startNum + i).padStart(3, '0');
+      statements.push(
+        this.db.prepare(
+          `INSERT INTO items (equipment_id, item_number, home_venue_id, current_venue_id, status, condition, is_active)
+           VALUES (?, ?, ?, ?, 'available', 'good', 1)`
+        ).bind(equipmentId, itemNumber, homeVenueId, homeVenueId)
+      );
+    }
+    return this.db.batch(statements);
+  }
+
+  async retireItem(id) {
+    return this.run(
+      `UPDATE items SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [id]
+    );
+  }
+
+  async sendToRepair(itemId, notes = '') {
+    return this.db.batch([
+      this.db.prepare(`UPDATE items SET status = 'under_repair', updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(itemId),
+      this.db.prepare(`INSERT INTO repairs (item_id, notes) VALUES (?, ?)`).bind(itemId, notes),
+    ]);
+  }
+
+  async returnFromRepair(repairId, notes = '') {
+    const repair = await this.first(`SELECT * FROM repairs WHERE id = ?`, [repairId]);
+    if (!repair) return null;
+    const repairNotes = notes || repair.notes || '';
+    return this.db.batch([
+      this.db.prepare(`UPDATE items SET status = 'available', current_venue_id = home_venue_id, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(repair.item_id),
+      this.db.prepare(`UPDATE repairs SET returned_from_repair_at = CURRENT_TIMESTAMP, notes = ? WHERE id = ?`).bind(repairNotes, repairId),
+    ]);
+  }
+
+  async getItemsUnderRepair() {
+    const sql = `
+      SELECT i.*, e.name as equipment_name, e.category,
+             v.name as home_venue_name,
+             r.id as repair_id, r.sent_for_repair_at, r.notes as repair_notes
+      FROM items i
+      JOIN equipment e ON i.equipment_id = e.id
+      JOIN venues v ON i.home_venue_id = v.id
+      JOIN repairs r ON r.item_id = i.id AND r.returned_from_repair_at IS NULL
+      WHERE i.is_active = 1 AND i.status = 'under_repair'
+      ORDER BY r.sent_for_repair_at ASC
+    `;
+    return this.query(sql);
+  }
+
+  async getRepairHistory() {
+    const sql = `
+      SELECT r.*, i.item_number, e.name as equipment_name, e.category,
+             v.name as home_venue_name
+      FROM repairs r
+      JOIN items i ON r.item_id = i.id
+      JOIN equipment e ON i.equipment_id = e.id
+      JOIN venues v ON i.home_venue_id = v.id
+      WHERE r.returned_from_repair_at IS NOT NULL
+      ORDER BY r.returned_from_repair_at DESC
+      LIMIT 100
+    `;
+    return this.query(sql);
   }
 }

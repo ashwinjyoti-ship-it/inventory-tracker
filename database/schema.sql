@@ -67,6 +67,16 @@ CREATE TABLE IF NOT EXISTS movements (
   FOREIGN KEY(to_venue_id) REFERENCES venues(id)
 );
 
+-- Repair History
+CREATE TABLE IF NOT EXISTS repairs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_id INTEGER NOT NULL,
+  sent_for_repair_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  returned_from_repair_at DATETIME DEFAULT NULL,
+  notes TEXT,
+  FOREIGN KEY(item_id) REFERENCES items(id)
+);
+
 -- Application Configuration
 CREATE TABLE IF NOT EXISTS config (
   key TEXT PRIMARY KEY,
@@ -85,6 +95,9 @@ CREATE INDEX IF NOT EXISTS idx_movements_logged_at ON movements(logged_at);
 CREATE INDEX IF NOT EXISTS idx_movements_movement_type ON movements(movement_type);
 CREATE INDEX IF NOT EXISTS idx_movements_returned_to_base_at ON movements(returned_to_base_at);
 CREATE INDEX IF NOT EXISTS idx_crew_members_is_active ON crew_members(is_active);
+CREATE INDEX IF NOT EXISTS idx_items_is_active ON items(is_active);
+CREATE INDEX IF NOT EXISTS idx_repairs_item_id ON repairs(item_id);
+CREATE INDEX IF NOT EXISTS idx_repairs_returned ON repairs(returned_from_repair_at);
 
 -- Initial Configuration
 INSERT OR IGNORE INTO config (key, value, description) VALUES

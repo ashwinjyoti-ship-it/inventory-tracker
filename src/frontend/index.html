@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LS Inventory">
   <link rel="apple-touch-icon" href="/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=9">
-  <link rel="stylesheet" href="css/skeu.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=12">
+  <link rel="stylesheet" href="css/skeu.css?v=12">
 </head>
 <body>
   <header>
@@ -79,7 +79,8 @@
         </div>
       </div>
 
-      <div id="quick-stats" class="card"></div>
+      <div id="quick-stats" class="card mb-3"></div>
+      <div id="home-alerts"></div>
     </div>
 
     <!-- Checkout Page -->
@@ -286,6 +287,87 @@
           </div>
         </div>
 
+        <!-- Manage Inventory Section -->
+        <div class="card collapsible collapsed mb-3" id="admin-inventory-card">
+          <button type="button" class="collapsible-header"
+                  onclick="app.toggleAdminSection('inventory')"
+                  aria-expanded="false" aria-controls="admin-inventory-body">
+            <div class="collapsible-title">
+              <h3>Manage Inventory</h3>
+              <p class="text-small text-muted">Add new equipment types, add items, or retire items no longer in service.</p>
+            </div>
+            <span class="collapsible-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="collapsible-body" id="admin-inventory-body">
+
+            <h4 class="mt-2 mb-1">Add New Equipment Type</h4>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="equip-name">Equipment Name</label>
+                <input type="text" id="equip-name" placeholder="e.g., Shure SM58">
+              </div>
+              <div class="form-group">
+                <label for="equip-category">Category</label>
+                <input type="text" id="equip-category" placeholder="e.g., Microphones">
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block" id="equip-add">Add Equipment Type</button>
+
+            <h4 class="mt-3 mb-1">Add Items to Equipment</h4>
+            <div class="form-group">
+              <label for="item-equipment">Equipment Type</label>
+              <select id="item-equipment">
+                <option value="">-- Select Equipment Type --</option>
+              </select>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="item-venue">Home Venue</label>
+                <select id="item-venue">
+                  <option value="">-- Select Home Venue --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="item-quantity">Quantity to Add</label>
+                <input type="number" id="item-quantity" min="1" max="100" value="1">
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block" id="items-add">Add Items</button>
+
+            <h4 class="mt-3 mb-1">Retire an Item</h4>
+            <div class="form-group">
+              <label for="retire-equipment">Filter by Equipment Type</label>
+              <select id="retire-equipment">
+                <option value="">-- All Equipment --</option>
+              </select>
+            </div>
+            <div id="retire-items-list" class="mt-1"></div>
+
+            <hr class="mt-3 mb-2">
+
+            <h4 class="mt-2 mb-1">Send to Repair</h4>
+            <div class="form-group">
+              <label for="send-repair-filter">Filter by Equipment Type</label>
+              <select id="send-repair-filter">
+                <option value="">-- All Equipment --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="send-repair-notes">Notes (optional)</label>
+              <input type="text" id="send-repair-notes" placeholder="e.g., Cracked housing, needs solder">
+            </div>
+            <div id="send-repair-list" class="mt-1"></div>
+
+            <h4 class="mt-3 mb-1">Currently Under Repair</h4>
+            <div id="repair-items-list" class="mt-1"></div>
+
+            <h4 class="mt-3 mb-1">Repair History</h4>
+            <button class="btn btn-secondary btn-small mb-1" id="load-repair-history">Load History</button>
+            <div id="repair-history-list"></div>
+
+          </div>
+        </div>
+
         <!-- Change Password Section -->
         <div class="card collapsible collapsed mb-3" id="admin-password-card">
           <button type="button" class="collapsible-header"
@@ -358,10 +440,10 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=9"></script>
-  <script src="js/api.js?v=9"></script>
-  <script src="js/ui.js?v=9"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/storage.js?v=12"></script>
+  <script src="js/api.js?v=12"></script>
+  <script src="js/ui.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');

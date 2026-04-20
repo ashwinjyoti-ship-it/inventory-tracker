@@ -360,25 +360,243 @@ class UI {
     }
   }
 
+  async loadEquipmentDropdowns() {
+    try {
+      const data = await api.getEquipment();
+      const equipment = data.equipment || [];
+      ['item-equipment', 'retire-equipment', 'send-repair-filter'].forEach((id, i) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = i === 0
+          ? '<option value="">-- Select Equipment Type --</option>'
+          : '<option value="">-- All Equipment --</option>';
+        equipment.forEach(e => {
+          const opt = document.createElement('option');
+          opt.value = e.id;
+          opt.textContent = `${e.category} — ${e.name}`;
+          sel.appendChild(opt);
+        });
+      });
+    } catch (error) {
+      this.showError('Failed to load equipment types');
+    }
+  }
+
+  async loadRetireItemsList(token, equipmentId = null) {
+    const container = document.getElementById('retire-items-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted text-small">Loading…</p>';
+    try {
+      const filters = equipmentId ? { equipment: equipmentId } : {};
+      const data = await api.getItems(filters);
+      const items = data.items || [];
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-muted text-small">No active items found.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        const badge = item.status === 'checked_out'
+          ? '<span class="badge badge-warning" style="margin-left:0.4rem">Checked Out</span>' : '';
+        div.innerHTML = `
+          <div class="list-item-content">
+            <div class="list-item-title">${item.equipment_name} #${item.item_number}${badge}</div>
+            <div class="list-item-subtitle">${item.home_venue_name}</div>
+          </div>
+          <button class="btn btn-small btn-danger" onclick="ui.retireItem(${item.id}, '${token}')">Retire</button>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      this.showError('Failed to load items');
+    }
+  }
+
+  async retireItem(id, token) {
+    if (!confirm('Retire this item? It will be removed from all active views. Movement history is preserved.')) return;
+    try {
+      const result = await api.retireItem(id, token);
+      const msg = result.was_checked_out
+        ? 'Item retired. It was checked out — history preserved.'
+        : 'Item retired successfully.';
+      this.showSuccess(msg);
+      const equipmentId = document.getElementById('retire-equipment')?.value || null;
+      this.loadRetireItemsList(token, equipmentId);
+    } catch (error) {
+      this.showError('Failed to retire item: ' + error.message);
+    }
+  }
+
+  async loadSendRepairList(token, equipmentId = null) {
+    const container = document.getElementById('send-repair-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted text-small">Loading…</p>';
+    try {
+      const filters = { status: 'available' };
+      if (equipmentId) filters.equipment = equipmentId;
+      const data = await api.getItems(filters);
+      const items = data.items || [];
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-muted text-small">No available items found.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+          <div class="list-item-content">
+            <div class="list-item-title">${item.equipment_name} #${item.item_number}</div>
+            <div class="list-item-subtitle">${item.home_venue_name}</div>
+          </div>
+          <button class="btn btn-small btn-warning" onclick="ui.sendToRepair(${item.id}, '${token}')">Send to Repair</button>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      this.showError('Failed to load items');
+    }
+  }
+
+  async sendToRepair(itemId, token) {
+    const notes = document.getElementById('send-repair-notes')?.value?.trim() || '';
+    if (!confirm('Send this item for repair? It will be hidden from normal views until returned.')) return;
+    try {
+      await api.sendToRepair(itemId, notes, token);
+      this.showSuccess('Item sent for repair.');
+      if (document.getElementById('send-repair-notes')) document.getElementById('send-repair-notes').value = '';
+      const equipmentId = document.getElementById('send-repair-filter')?.value || null;
+      this.loadSendRepairList(token, equipmentId);
+      this.loadRepairItems(token);
+    } catch (error) {
+      this.showError('Failed to send item for repair: ' + error.message);
+    }
+  }
+
+  async loadRepairItems(token) {
+    const container = document.getElementById('repair-items-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted text-small">Loading…</p>';
+    try {
+      const data = await api.getRepairItems(token);
+      const repairs = data.repairs || [];
+      if (repairs.length === 0) {
+        container.innerHTML = '<p class="text-muted text-small">No items currently under repair.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      repairs.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        const sentDate = new Date(item.sent_for_repair_at).toLocaleDateString();
+        div.innerHTML = `
+          <div class="list-item-content">
+            <div class="list-item-title">${item.equipment_name} #${item.item_number}</div>
+            <div class="list-item-subtitle">${item.home_venue_name} · Sent ${sentDate}${item.repair_notes ? ' · ' + item.repair_notes : ''}</div>
+          </div>
+          <button class="btn btn-small btn-primary" onclick="ui.returnFromRepair(${item.repair_id}, '${token}')">Return from Repair</button>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      this.showError('Failed to load repair items');
+    }
+  }
+
+  async returnFromRepair(repairId, token) {
+    if (!confirm('Mark this item as returned from repair? It will be set to available at its home venue.')) return;
+    try {
+      await api.returnFromRepair(repairId, '', token);
+      this.showSuccess('Item returned from repair.');
+      this.loadRepairItems(token);
+      const equipmentId = document.getElementById('send-repair-filter')?.value || null;
+      this.loadSendRepairList(token, equipmentId);
+    } catch (error) {
+      this.showError('Failed to return item from repair: ' + error.message);
+    }
+  }
+
+  async loadRepairHistory(token) {
+    const container = document.getElementById('repair-history-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted text-small">Loading…</p>';
+    try {
+      const data = await api.getRepairHistory(token);
+      const history = data.history || [];
+      if (history.length === 0) {
+        container.innerHTML = '<p class="text-muted text-small">No repair history yet.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      history.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        const sentDate = new Date(r.sent_for_repair_at).toLocaleDateString();
+        const returnDate = new Date(r.returned_from_repair_at).toLocaleDateString();
+        div.innerHTML = `
+          <div class="list-item-content">
+            <div class="list-item-title">${r.equipment_name} #${r.item_number}</div>
+            <div class="list-item-subtitle">Sent ${sentDate} · Returned ${returnDate}${r.notes ? ' · ' + r.notes : ''}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      this.showError('Failed to load repair history');
+    }
+  }
+
   async loadQuickStats() {
     try {
       const items = await api.getItems();
-      const unreturned = await api.getUnreturnedItems();
 
       const container = document.getElementById('quick-stats');
       const totalItems = items.count || 0;
       const checkedOut = (items.items || []).filter(i => i.status === 'checked_out').length;
-      const alerts = unreturned.unreturned_items?.length || 0;
 
       container.innerHTML = `
-        <div class="flex-between mb-1">
+        <div class="flex-between">
           <span><strong>Total Equipment:</strong> ${totalItems}</span>
           <span><strong>Checked Out:</strong> ${checkedOut}</span>
         </div>
-        <div><strong>Unreturned (5+ days):</strong> ${alerts}</div>
       `;
     } catch (error) {
       console.error('Failed to load stats:', error);
+    }
+  }
+
+  async loadHomeAlerts() {
+    const container = document.getElementById('home-alerts');
+    if (!container) return;
+    try {
+      const data = await api.getUnreturnedItems(5);
+      const items = data.unreturned_items || [];
+      container.innerHTML = '';
+      if (items.length === 0) return;
+
+      const header = document.createElement('p');
+      header.className = 'text-small text-muted mb-1';
+      header.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} not returned in 5+ days`;
+      container.appendChild(header);
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'alert alert-warning';
+        div.innerHTML = `
+          <strong>${item.equipment_name} #${item.item_number}</strong>
+          <div class="text-small mt-1">
+            Holder: ${item.crew_member_name}<br>
+            Location: ${item.current_venue_name}<br>
+            Base: ${item.home_venue_name}<br>
+            ${item.days_out} day${item.days_out !== 1 ? 's' : ''} out
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      console.error('Failed to load home alerts:', error);
     }
   }
 }
