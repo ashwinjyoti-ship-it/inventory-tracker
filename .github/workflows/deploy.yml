@@ -55,6 +55,8 @@ jobs:
         run: |
           wrangler d1 execute "$DB_NAME" --remote \
             --command="ALTER TABLE items ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1" || true
+          wrangler d1 execute "$DB_NAME" --remote \
+            --command="CREATE INDEX IF NOT EXISTS idx_items_is_active ON items(is_active)" || true
 
       # ---- 3. Deploy Pages ----
       - name: Create Pages project if needed
