@@ -1,0 +1,18 @@
+{
+  "name": "Sound Inventory Tracker",
+  "short_name": "LS Inventory",
+  "description": "NCPA live sound equipment tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF8EF",
+  "theme_color": "#001D3D",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
