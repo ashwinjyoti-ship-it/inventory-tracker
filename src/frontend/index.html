@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LS Inventory">
   <link rel="apple-touch-icon" href="/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=10">
-  <link rel="stylesheet" href="css/skeu.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/skeu.css?v=11">
 </head>
 <body>
   <header>
@@ -342,6 +342,28 @@
             </div>
             <div id="retire-items-list" class="mt-1"></div>
 
+            <hr class="mt-3 mb-2">
+
+            <h4 class="mt-2 mb-1">Send to Repair</h4>
+            <div class="form-group">
+              <label for="send-repair-filter">Filter by Equipment Type</label>
+              <select id="send-repair-filter">
+                <option value="">-- All Equipment --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="send-repair-notes">Notes (optional)</label>
+              <input type="text" id="send-repair-notes" placeholder="e.g., Cracked housing, needs solder">
+            </div>
+            <div id="send-repair-list" class="mt-1"></div>
+
+            <h4 class="mt-3 mb-1">Currently Under Repair</h4>
+            <div id="repair-items-list" class="mt-1"></div>
+
+            <h4 class="mt-3 mb-1">Repair History</h4>
+            <button class="btn btn-secondary btn-small mb-1" id="load-repair-history">Load History</button>
+            <div id="repair-history-list"></div>
+
           </div>
         </div>
 
@@ -417,10 +439,10 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=10"></script>
-  <script src="js/api.js?v=10"></script>
-  <script src="js/ui.js?v=10"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/storage.js?v=11"></script>
+  <script src="js/api.js?v=11"></script>
+  <script src="js/ui.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');

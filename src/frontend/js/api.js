@@ -160,6 +160,23 @@ class API {
   retireItem(id, token) {
     return this.request('DELETE', `/config/items/${id}`, null, token);
   }
+
+  // Config - Repairs
+  getRepairItems(token) {
+    return this.request('GET', '/config/repairs', null, token);
+  }
+
+  sendToRepair(itemId, notes = '', token) {
+    return this.request('POST', '/config/repairs', { item_id: itemId, notes }, token);
+  }
+
+  returnFromRepair(repairId, notes = '', token) {
+    return this.request('PUT', `/config/repairs/${repairId}`, { notes }, token);
+  }
+
+  getRepairHistory(token) {
+    return this.request('GET', '/config/repairs/history', null, token);
+  }
 }
 
 const api = new API();

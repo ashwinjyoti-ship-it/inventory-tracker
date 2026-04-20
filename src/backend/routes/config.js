@@ -103,7 +103,7 @@ export async function handleConfigRequest(request, db, env) {
       const venueId = parseInt(venueIdMatch[1]);
 
       // Prevent deleting a venue that has items currently there
-      const items = await db.getItems({ current_venue_id: venueId });
+      const items = await db.getItems({ current_venue_id: venueId, include_under_repair: true });
       if (items.results && items.results.length > 0) {
         return errorResponse('Cannot delete venue: items are currently located there', 409);
       }
@@ -312,6 +312,70 @@ export async function handleConfigRequest(request, db, env) {
     } catch (error) {
       console.error('Error retiring item:', error);
       return errorResponse('Failed to retire item', 500);
+    }
+  }
+
+  // GET /api/config/repairs — items currently under repair
+  if (pathname === '/api/config/repairs' && request.method === 'GET') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const result = await db.getItemsUnderRepair();
+      return jsonResponse({ success: true, repairs: result.results || [] });
+    } catch (error) {
+      console.error('Error fetching repair items:', error);
+      return errorResponse('Failed to fetch repair items', 500);
+    }
+  }
+
+  // GET /api/config/repairs/history — completed repair records
+  if (pathname === '/api/config/repairs/history' && request.method === 'GET') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const result = await db.getRepairHistory();
+      return jsonResponse({ success: true, history: result.results || [] });
+    } catch (error) {
+      console.error('Error fetching repair history:', error);
+      return errorResponse('Failed to fetch repair history', 500);
+    }
+  }
+
+  // POST /api/config/repairs — send item to repair
+  if (pathname === '/api/config/repairs' && request.method === 'POST') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const body = await getJsonBody(request);
+      if (!body?.item_id) return errorResponse('item_id required', 400);
+      const item = await db.getItem(parseInt(body.item_id));
+      if (!item) return errorResponse('Item not found', 404);
+      if (item.status !== 'available') return errorResponse('Only available items can be sent for repair', 409);
+      await db.sendToRepair(parseInt(body.item_id), body.notes || '');
+      return jsonResponse({ success: true, message: 'Item sent for repair' }, 201);
+    } catch (error) {
+      console.error('Error sending item for repair:', error);
+      return errorResponse('Failed to send item for repair', 500);
+    }
+  }
+
+  // PUT /api/config/repairs/:id — return item from repair
+  const repairIdMatch = pathname.match(/^\/api\/config\/repairs\/(\d+)$/);
+  if (repairIdMatch && request.method === 'PUT') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const body = await getJsonBody(request);
+      const result = await db.returnFromRepair(parseInt(repairIdMatch[1]), body?.notes || '');
+      if (!result) return errorResponse('Repair record not found', 404);
+      return jsonResponse({ success: true, message: 'Item returned from repair' });
+    } catch (error) {
+      console.error('Error returning item from repair:', error);
+      return errorResponse('Failed to return item from repair', 500);
     }
   }
 

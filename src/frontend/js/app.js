@@ -35,6 +35,11 @@ class App {
         const token = storage.getAdminToken();
         ui.loadRetireItemsList(token, e.target.value || null);
       }
+
+      if (e.target.id === 'send-repair-filter') {
+        const token = storage.getAdminToken();
+        ui.loadSendRepairList(token, e.target.value || null);
+      }
     });
 
     // Real-time search filters already-loaded results without a server call
@@ -53,6 +58,9 @@ class App {
     document.getElementById('history-clear')?.addEventListener('click', () => this.handleClearHistory());
     document.getElementById('equip-add')?.addEventListener('click', () => this.handleEquipmentAdd());
     document.getElementById('items-add')?.addEventListener('click', () => this.handleItemsAdd());
+    document.getElementById('load-repair-history')?.addEventListener('click', () => {
+      ui.loadRepairHistory(storage.getAdminToken());
+    });
 
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -114,6 +122,8 @@ class App {
           ui.loadCrewList(token);
           ui.loadEquipmentDropdowns();
           ui.loadVenues('item-venue');
+          ui.loadRepairItems(token);
+          ui.loadSendRepairList(token);
         }
         break;
       }
@@ -311,6 +321,8 @@ class App {
     ui.loadCrewList(password);
     ui.loadEquipmentDropdowns();
     ui.loadVenues('item-venue');
+    ui.loadRepairItems(password);
+    ui.loadSendRepairList(password);
   }
 
   handleAdminLogout() {
