@@ -10,7 +10,6 @@ class App {
 
   async init() {
     this.setupEventListeners();
-    await this.setupUser();
     this.showPage('home');
   }
 
@@ -54,41 +53,6 @@ class App {
         e.target.closest('.nav-item').classList.add('active');
       });
     });
-  }
-
-  async setupUser() {
-    try {
-      const data = await api.getCrewMembers();
-      const userInfo = document.getElementById('user-info');
-
-      if (!data.crew || data.crew.length === 0) return;
-
-      const saved = storage.getUser();
-      const select = document.createElement('select');
-      select.innerHTML = '<option value="">-- Select Your Name --</option>';
-
-      data.crew.forEach(member => {
-        const option = document.createElement('option');
-        option.value = member.id;
-        option.textContent = member.name;
-        if (String(member.id) === String(saved.id)) option.selected = true;
-        select.appendChild(option);
-      });
-
-      select.addEventListener('change', (e) => {
-        if (e.target.value) {
-          const selected = data.crew.find(c => c.id == e.target.value);
-          storage.setUser(selected.id, selected.name);
-        } else {
-          storage.clearUser();
-        }
-      });
-
-      userInfo.innerHTML = '';
-      userInfo.appendChild(select);
-    } catch (error) {
-      console.error('Failed to setup user:', error);
-    }
   }
 
   showPage(pageName) {
