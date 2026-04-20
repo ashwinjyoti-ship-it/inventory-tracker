@@ -588,6 +588,7 @@ class UI {
           <strong>${item.equipment_name} #${item.item_number}</strong>
           <div class="text-small mt-1">
             Holder: ${item.crew_member_name}<br>
+            Location: ${item.current_venue_name}<br>
             Base: ${item.home_venue_name}<br>
             ${item.days_out} day${item.days_out !== 1 ? 's' : ''} out
           </div>
