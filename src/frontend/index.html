@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Sound Inventory Tracker</title>
-  <link rel="stylesheet" href="css/style.css?v=7">
-  <link rel="stylesheet" href="css/skeu.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/skeu.css?v=8">
 </head>
 <body>
   <header>
@@ -229,60 +229,84 @@
       <div id="admin-content" class="hidden">
 
         <!-- Venues Section -->
-        <div class="card mb-3">
-          <h3>Manage Venues</h3>
-          <p class="text-small text-muted mb-2">Add new venues (e.g. Outdoor Stage A) or remove ones no longer in use.</p>
+        <div class="card collapsible collapsed mb-3" id="admin-venues-card">
+          <button type="button" class="collapsible-header"
+                  onclick="app.toggleAdminSection('venues')"
+                  aria-expanded="false" aria-controls="admin-venues-body">
+            <div class="collapsible-title">
+              <h3>Manage Venues</h3>
+              <p class="text-small text-muted">Add new venues (e.g. Outdoor Stage A) or remove ones no longer in use.</p>
+            </div>
+            <span class="collapsible-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="collapsible-body" id="admin-venues-body">
+            <div class="form-row-2 mt-2">
+              <div class="form-group">
+                <label for="venue-name">New Venue Name</label>
+                <input type="text" id="venue-name" placeholder="e.g., Outdoor Stage A">
+              </div>
 
-          <div class="form-row-2 mt-2">
-            <div class="form-group">
-              <label for="venue-name">New Venue Name</label>
-              <input type="text" id="venue-name" placeholder="e.g., Outdoor Stage A">
+              <div class="form-group">
+                <label for="venue-desc">Description (optional)</label>
+                <input type="text" id="venue-desc" placeholder="e.g., North lawn outdoor area">
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="venue-desc">Description (optional)</label>
-              <input type="text" id="venue-desc" placeholder="e.g., North lawn outdoor area">
-            </div>
+            <button class="btn btn-primary btn-block" id="venue-add">Add Venue</button>
+
+            <div id="venues-list" class="mt-2"></div>
           </div>
-
-          <button class="btn btn-primary btn-block" id="venue-add">Add Venue</button>
-
-          <div id="venues-list" class="mt-2"></div>
         </div>
 
         <!-- Crew Section -->
-        <div class="card mb-3">
-          <h3>Manage Crew Members</h3>
-          <p class="text-small text-muted mb-2">Add crew members so they appear in the dropdown. Deactivate rather than delete to preserve history.</p>
+        <div class="card collapsible collapsed mb-3" id="admin-crew-card">
+          <button type="button" class="collapsible-header"
+                  onclick="app.toggleAdminSection('crew')"
+                  aria-expanded="false" aria-controls="admin-crew-body">
+            <div class="collapsible-title">
+              <h3>Manage Crew Members</h3>
+              <p class="text-small text-muted">Add crew members so they appear in the dropdown. Deactivate rather than delete to preserve history.</p>
+            </div>
+            <span class="collapsible-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="collapsible-body" id="admin-crew-body">
+            <div class="form-group mt-2">
+              <label for="crew-name">New Crew Member Name</label>
+              <input type="text" id="crew-name" placeholder="e.g., John Smith">
+            </div>
 
-          <div class="form-group mt-2">
-            <label for="crew-name">New Crew Member Name</label>
-            <input type="text" id="crew-name" placeholder="e.g., John Smith">
+            <button class="btn btn-primary btn-block" id="crew-add">Add Crew Member</button>
+
+            <div id="crew-list" class="mt-2"></div>
           </div>
-
-          <button class="btn btn-primary btn-block" id="crew-add">Add Crew Member</button>
-
-          <div id="crew-list" class="mt-2"></div>
         </div>
 
         <!-- Change Password Section -->
-        <div class="card mb-3">
-          <h3>Change Admin Password</h3>
-          <p class="text-small text-muted mb-2">Update the password used to access this admin panel.</p>
+        <div class="card collapsible collapsed mb-3" id="admin-password-card">
+          <button type="button" class="collapsible-header"
+                  onclick="app.toggleAdminSection('password')"
+                  aria-expanded="false" aria-controls="admin-password-body">
+            <div class="collapsible-title">
+              <h3>Change Admin Password</h3>
+              <p class="text-small text-muted">Update the password used to access this admin panel.</p>
+            </div>
+            <span class="collapsible-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="collapsible-body" id="admin-password-body">
+            <div class="form-row-2 mt-2">
+              <div class="form-group">
+                <label for="pw-new">New Password</label>
+                <input type="password" id="pw-new" placeholder="New password (min 4 characters)">
+              </div>
 
-          <div class="form-row-2 mt-2">
-            <div class="form-group">
-              <label for="pw-new">New Password</label>
-              <input type="password" id="pw-new" placeholder="New password (min 4 characters)">
+              <div class="form-group">
+                <label for="pw-confirm">Confirm New Password</label>
+                <input type="password" id="pw-confirm" placeholder="Repeat new password">
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="pw-confirm">Confirm New Password</label>
-              <input type="password" id="pw-confirm" placeholder="Repeat new password">
-            </div>
+            <button class="btn btn-warning btn-block" id="pw-change">Change Password</button>
           </div>
-
-          <button class="btn btn-warning btn-block" id="pw-change">Change Password</button>
         </div>
 
         <button class="btn btn-secondary btn-block mt-3" id="admin-logout">Logout</button>
@@ -309,9 +333,9 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=7"></script>
-  <script src="js/api.js?v=7"></script>
-  <script src="js/ui.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/storage.js?v=8"></script>
+  <script src="js/api.js?v=8"></script>
+  <script src="js/ui.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

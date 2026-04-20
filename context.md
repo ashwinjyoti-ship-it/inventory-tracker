@@ -57,6 +57,10 @@ Tap **Admin** in the bottom navigation. Enter the admin password to access setti
 
 **Default password: ls1234**
 
+Each section — Venues, Crew, Password — is a collapsible card. Click the
+title to expand or collapse; all sections start collapsed so you can see the
+full list of admin actions at a glance without scrolling.
+
 ### Manage Venues
 Add new venues (e.g. Outdoor Stage North) so crew can select them when checking out. Delete venues that are no longer in use — the app will not allow deleting a venue that currently has items at it.
 

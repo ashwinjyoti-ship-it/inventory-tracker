@@ -427,6 +427,60 @@ select {
   color: var(--primary-ink);
 }
 
+/* Collapsible cards (admin sections) */
+.card.collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+.collapsible-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.collapsible-header:hover {
+  background: var(--surface-muted);
+}
+
+.collapsible-title h3 { margin-bottom: 0.15rem; }
+.collapsible-title p  { margin: 0; }
+
+.collapsible-chevron {
+  font-size: 1.2rem;
+  color: var(--ink-muted);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.collapsible.collapsed .collapsible-chevron {
+  transform: rotate(-90deg);
+}
+
+.collapsible-body {
+  max-height: 1500px;
+  opacity: 1;
+  padding: 0 1rem 1rem;
+  transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+}
+
+.collapsible.collapsed .collapsible-body {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
 /* Desktop compaction */
 @media (min-width: 900px) {
   html, body { font-size: 16px; }

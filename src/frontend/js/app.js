@@ -208,6 +208,14 @@ class App {
     document.getElementById('section-move').classList.toggle('hidden', isReturn);
   }
 
+  toggleAdminSection(name) {
+    const card = document.getElementById(`admin-${name}-card`);
+    if (!card) return;
+    const collapsed = card.classList.toggle('collapsed');
+    const header = card.querySelector('.collapsible-header');
+    header?.setAttribute('aria-expanded', String(!collapsed));
+  }
+
   async handleCheckout() {
     const crewId = document.getElementById('checkout-crew').value;
     const fromVenueId = document.getElementById('checkout-from').value;
