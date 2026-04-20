@@ -61,34 +61,31 @@ class App {
       const data = await api.getCrewMembers();
       const userInfo = document.getElementById('user-info');
 
-      const user = storage.getUser();
-      if (user.id && user.name) {
-        userInfo.textContent = `User: ${user.name}`;
-        return;
-      }
+      if (!data.crew || data.crew.length === 0) return;
 
-      if (data.crew && data.crew.length > 0) {
-        const select = document.createElement('select');
-        select.innerHTML = '<option value="">-- Select Your Name --</option>';
+      const saved = storage.getUser();
+      const select = document.createElement('select');
+      select.innerHTML = '<option value="">-- Select Your Name --</option>';
 
-        data.crew.forEach(member => {
-          const option = document.createElement('option');
-          option.value = member.id;
-          option.textContent = member.name;
-          select.appendChild(option);
-        });
+      data.crew.forEach(member => {
+        const option = document.createElement('option');
+        option.value = member.id;
+        option.textContent = member.name;
+        if (String(member.id) === String(saved.id)) option.selected = true;
+        select.appendChild(option);
+      });
 
-        select.addEventListener('change', (e) => {
-          if (e.target.value) {
-            const selected = data.crew.find(c => c.id == e.target.value);
-            storage.setUser(selected.id, selected.name);
-            userInfo.textContent = `User: ${selected.name}`;
-          }
-        });
+      select.addEventListener('change', (e) => {
+        if (e.target.value) {
+          const selected = data.crew.find(c => c.id == e.target.value);
+          storage.setUser(selected.id, selected.name);
+        } else {
+          storage.clearUser();
+        }
+      });
 
-        userInfo.innerHTML = '';
-        userInfo.appendChild(select);
-      }
+      userInfo.innerHTML = '';
+      userInfo.appendChild(select);
     } catch (error) {
       console.error('Failed to setup user:', error);
     }
