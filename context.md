@@ -109,11 +109,35 @@ The app runs on **Cloudflare Pages** with **Pages Functions** for the backend AP
 - Crew app: https://ls-inventory.pages.dev
 - Admin panel: https://ls-inventory.pages.dev/admin
 
-**Auto-deploy:** Every push to the `main` branch on GitHub triggers an automatic deployment via GitHub Actions (`.github/workflows/deploy.yml`). The workflow:
-1. Substitutes the D1 database ID into `wrangler.toml` from the `CLOUDFLARE_D1_DATABASE_ID` secret (never hardcoded).
-2. Applies `database/schema.sql` to D1 (idempotent — safe to re-run).
-3. Creates the Pages project if it does not yet exist.
-4. Deploys `src/frontend` as the static assets; Pages Functions are picked up automatically.
+### How to Deploy Changes (for non-technical users)
+
+**Claude Code (AI Assistant) handles all pushing, merging, and deploying. You do NOT need to do anything manually.**
+
+When you want to deploy a change:
+1. **Describe what you want changed** in the chat with Claude Code.
+2. **Claude Code will:**
+   - Edit the files you need changed.
+   - Test locally if needed.
+   - Commit the changes with a clear message.
+   - Push to the `main` branch on GitHub.
+   - GitHub Actions will automatically run (you don't need to do anything).
+3. **Within 2–5 minutes**, your changes will be live at https://ls-inventory.pages.dev.
+
+**You can verify the change worked by:**
+- Opening https://ls-inventory.pages.dev in your browser.
+- Logging in with the admin password.
+- Checking that the new feature or fix is there.
+
+### What Happens Automatically (No Action Needed)
+
+Every time code is pushed to the `main` branch on GitHub:
+1. GitHub Actions runs the workflow `.github/workflows/deploy.yml`.
+2. The workflow substitutes the D1 database ID from GitHub Secrets into `wrangler.toml`.
+3. Database schema is applied (safe — idempotent, won't overwrite data).
+4. The app is deployed to Cloudflare Pages.
+5. Within 2–5 minutes, the live app is updated.
+
+### Technical Details (Reference Only)
 
 **Required GitHub secrets** (Settings → Secrets → Actions):
 | Secret | Value |
