@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Sound Inventory Tracker</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#001D3D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LS Inventory">
+  <link rel="apple-touch-icon" href="/icon.svg">
   <link rel="stylesheet" href="css/style.css?v=9">
   <link rel="stylesheet" href="css/skeu.css?v=9">
 </head>
@@ -357,5 +363,10 @@
   <script src="js/api.js?v=9"></script>
   <script src="js/ui.js?v=9"></script>
   <script src="js/app.js?v=9"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
 </body>
 </html>
