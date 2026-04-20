@@ -85,6 +85,7 @@ CREATE INDEX IF NOT EXISTS idx_movements_logged_at ON movements(logged_at);
 CREATE INDEX IF NOT EXISTS idx_movements_movement_type ON movements(movement_type);
 CREATE INDEX IF NOT EXISTS idx_movements_returned_to_base_at ON movements(returned_to_base_at);
 CREATE INDEX IF NOT EXISTS idx_crew_members_is_active ON crew_members(is_active);
+CREATE INDEX IF NOT EXISTS idx_items_is_active ON items(is_active);
 
 -- Initial Configuration
 INSERT OR IGNORE INTO config (key, value, description) VALUES

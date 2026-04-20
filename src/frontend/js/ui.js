@@ -360,6 +360,75 @@ class UI {
     }
   }
 
+  async loadEquipmentDropdowns() {
+    try {
+      const data = await api.getEquipment();
+      const equipment = data.equipment || [];
+      ['item-equipment', 'retire-equipment'].forEach((id, i) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = i === 0
+          ? '<option value="">-- Select Equipment Type --</option>'
+          : '<option value="">-- All Equipment --</option>';
+        equipment.forEach(e => {
+          const opt = document.createElement('option');
+          opt.value = e.id;
+          opt.textContent = `${e.category} — ${e.name}`;
+          sel.appendChild(opt);
+        });
+      });
+    } catch (error) {
+      this.showError('Failed to load equipment types');
+    }
+  }
+
+  async loadRetireItemsList(token, equipmentId = null) {
+    const container = document.getElementById('retire-items-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted text-small">Loading…</p>';
+    try {
+      const filters = equipmentId ? { equipment: equipmentId } : {};
+      const data = await api.getItems(filters);
+      const items = data.items || [];
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-muted text-small">No active items found.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        const badge = item.status === 'checked_out'
+          ? '<span class="badge badge-warning" style="margin-left:0.4rem">Checked Out</span>' : '';
+        div.innerHTML = `
+          <div class="list-item-content">
+            <div class="list-item-title">${item.equipment_name} #${item.item_number}${badge}</div>
+            <div class="list-item-subtitle">${item.home_venue_name}</div>
+          </div>
+          <button class="btn btn-small btn-danger" onclick="ui.retireItem(${item.id}, '${token}')">Retire</button>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      this.showError('Failed to load items');
+    }
+  }
+
+  async retireItem(id, token) {
+    if (!confirm('Retire this item? It will be removed from all active views. Movement history is preserved.')) return;
+    try {
+      const result = await api.retireItem(id, token);
+      const msg = result.was_checked_out
+        ? 'Item retired. It was checked out — history preserved.'
+        : 'Item retired successfully.';
+      this.showSuccess(msg);
+      const equipmentId = document.getElementById('retire-equipment')?.value || null;
+      this.loadRetireItemsList(token, equipmentId);
+    } catch (error) {
+      this.showError('Failed to retire item: ' + error.message);
+    }
+  }
+
   async loadQuickStats() {
     try {
       const items = await api.getItems();

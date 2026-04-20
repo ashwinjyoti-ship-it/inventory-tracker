@@ -30,6 +30,11 @@ class App {
       if (e.target.id === 'history-filter') {
         this.reloadHistory();
       }
+
+      if (e.target.id === 'retire-equipment') {
+        const token = storage.getAdminToken();
+        ui.loadRetireItemsList(token, e.target.value || null);
+      }
     });
 
     // Real-time search filters already-loaded results without a server call
@@ -46,6 +51,8 @@ class App {
     document.getElementById('crew-add')?.addEventListener('click', () => this.handleCrewAdd());
     document.getElementById('pw-change')?.addEventListener('click', () => this.handlePasswordChange());
     document.getElementById('history-clear')?.addEventListener('click', () => this.handleClearHistory());
+    document.getElementById('equip-add')?.addEventListener('click', () => this.handleEquipmentAdd());
+    document.getElementById('items-add')?.addEventListener('click', () => this.handleItemsAdd());
 
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -105,6 +112,8 @@ class App {
           document.getElementById('admin-content').classList.remove('hidden');
           ui.loadVenuesList(token);
           ui.loadCrewList(token);
+          ui.loadEquipmentDropdowns();
+          ui.loadVenues('item-venue');
         }
         break;
       }
@@ -300,6 +309,8 @@ class App {
 
     ui.loadVenuesList(password);
     ui.loadCrewList(password);
+    ui.loadEquipmentDropdowns();
+    ui.loadVenues('item-venue');
   }
 
   handleAdminLogout() {
@@ -400,6 +411,45 @@ class App {
       ui.showSuccess('All history cleared. Items reset to home venues.');
     } catch (error) {
       ui.showError('Failed to clear history: ' + error.message);
+    }
+  }
+
+  async handleEquipmentAdd() {
+    const name = document.getElementById('equip-name').value.trim();
+    const category = document.getElementById('equip-category').value.trim();
+    const token = storage.getAdminToken();
+    if (!name || !category) {
+      ui.showError('Please enter both equipment name and category');
+      return;
+    }
+    try {
+      await api.createEquipment(name, category, token);
+      ui.showSuccess('Equipment type added!');
+      document.getElementById('equip-name').value = '';
+      document.getElementById('equip-category').value = '';
+      ui.loadEquipmentDropdowns();
+    } catch (error) {
+      ui.showError('Failed to add equipment type: ' + error.message);
+    }
+  }
+
+  async handleItemsAdd() {
+    const equipmentId = document.getElementById('item-equipment').value;
+    const homeVenueId = document.getElementById('item-venue').value;
+    const quantity = parseInt(document.getElementById('item-quantity').value);
+    const token = storage.getAdminToken();
+    if (!equipmentId) { ui.showError('Please select an equipment type'); return; }
+    if (!homeVenueId) { ui.showError('Please select a home venue'); return; }
+    if (!quantity || quantity < 1) { ui.showError('Please enter a quantity of at least 1'); return; }
+    try {
+      await api.addItems(parseInt(equipmentId), parseInt(homeVenueId), quantity, token);
+      ui.showSuccess(`${quantity} item(s) added successfully!`);
+      document.getElementById('item-equipment').value = '';
+      document.getElementById('item-quantity').value = '1';
+      const retireFilter = document.getElementById('retire-equipment')?.value;
+      ui.loadRetireItemsList(token, retireFilter || null);
+    } catch (error) {
+      ui.showError('Failed to add items: ' + error.message);
     }
   }
 }

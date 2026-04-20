@@ -39,7 +39,7 @@ export class Database {
       JOIN equipment e ON i.equipment_id = e.id
       JOIN venues v1 ON i.current_venue_id = v1.id
       JOIN venues v2 ON i.home_venue_id = v2.id
-      WHERE 1=1
+      WHERE i.is_active = 1
     `;
     const params = [];
 
@@ -204,6 +204,7 @@ export class Database {
       JOIN venues v ON i.current_venue_id = v.id
       JOIN movements m ON i.id = m.item_id AND m.movement_type = 'checkout'
       WHERE i.status = 'checked_out'
+        AND i.is_active = 1
         AND m.id = (
           SELECT MAX(id) FROM movements WHERE item_id = i.id
         )
@@ -338,5 +339,35 @@ export class Database {
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
     `;
     return this.run(sql, [newPassword]);
+  }
+
+  async createEquipment(name, category) {
+    return this.run(`INSERT INTO equipment (name, category) VALUES (?, ?)`, [name, category]);
+  }
+
+  async addItems(equipmentId, homeVenueId, quantity) {
+    const row = await this.first(
+      `SELECT MAX(CAST(item_number AS INTEGER)) as max_num FROM items WHERE equipment_id = ?`,
+      [equipmentId]
+    );
+    const startNum = (row?.max_num ?? 0) + 1;
+    const statements = [];
+    for (let i = 0; i < quantity; i++) {
+      const itemNumber = String(startNum + i).padStart(3, '0');
+      statements.push(
+        this.db.prepare(
+          `INSERT INTO items (equipment_id, item_number, home_venue_id, current_venue_id, status, condition, is_active)
+           VALUES (?, ?, ?, ?, 'available', 'good', 1)`
+        ).bind(equipmentId, itemNumber, homeVenueId, homeVenueId)
+      );
+    }
+    return this.db.batch(statements);
+  }
+
+  async retireItem(id) {
+    return this.run(
+      `UPDATE items SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [id]
+    );
   }
 }

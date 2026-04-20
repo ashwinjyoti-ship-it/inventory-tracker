@@ -248,5 +248,72 @@ export async function handleConfigRequest(request, db, env) {
     }
   }
 
+  // GET /api/config/equipment — list all equipment types (public, used to populate dropdowns)
+  if (pathname === '/api/config/equipment' && request.method === 'GET') {
+    try {
+      const result = await db.getEquipment();
+      return jsonResponse({ success: true, equipment: result.results || [] });
+    } catch (error) {
+      console.error('Error fetching equipment:', error);
+      return errorResponse('Failed to fetch equipment', 500);
+    }
+  }
+
+  // POST /api/config/equipment — create new equipment type
+  if (pathname === '/api/config/equipment' && request.method === 'POST') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const body = await getJsonBody(request);
+      if (!body?.name?.trim() || !body?.category?.trim())
+        return errorResponse('name and category required', 400);
+      const result = await db.createEquipment(body.name.trim(), body.category.trim());
+      return jsonResponse({ success: true, equipment_id: result.meta.last_row_id }, 201);
+    } catch (error) {
+      if (error.message?.includes('UNIQUE constraint failed'))
+        return errorResponse('Equipment type with that name already exists', 409);
+      console.error('Error creating equipment:', error);
+      return errorResponse('Failed to create equipment type', 500);
+    }
+  }
+
+  // POST /api/config/items — add items to an equipment type
+  if (pathname === '/api/config/items' && request.method === 'POST') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const body = await getJsonBody(request);
+      const quantity = parseInt(body?.quantity);
+      if (!body?.equipment_id || !body?.home_venue_id || !quantity)
+        return errorResponse('equipment_id, home_venue_id, quantity required', 400);
+      if (isNaN(quantity) || quantity < 1 || quantity > 100)
+        return errorResponse('quantity must be 1–100', 400);
+      await db.addItems(parseInt(body.equipment_id), parseInt(body.home_venue_id), quantity);
+      return jsonResponse({ success: true, message: `${quantity} item(s) added` }, 201);
+    } catch (error) {
+      console.error('Error adding items:', error);
+      return errorResponse('Failed to add items', 500);
+    }
+  }
+
+  // DELETE /api/config/items/:id — retire item (soft delete)
+  const retireItemMatch = pathname.match(/^\/api\/config\/items\/(\d+)$/);
+  if (retireItemMatch && request.method === 'DELETE') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      const item = await db.getItem(parseInt(retireItemMatch[1]));
+      if (!item) return errorResponse('Item not found', 404);
+      await db.retireItem(item.id);
+      return jsonResponse({ success: true, was_checked_out: item.status === 'checked_out' });
+    } catch (error) {
+      console.error('Error retiring item:', error);
+      return errorResponse('Failed to retire item', 500);
+    }
+  }
+
   return null;
 }

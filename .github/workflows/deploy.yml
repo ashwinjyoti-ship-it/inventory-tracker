@@ -50,6 +50,12 @@ jobs:
       - name: Apply D1 schema
         run: wrangler d1 execute "$DB_NAME" --remote --file=database/schema.sql
 
+      # ---- 2b. Additive column migrations (|| true swallows "duplicate column" on re-runs) ----
+      - name: Apply D1 migrations
+        run: |
+          wrangler d1 execute "$DB_NAME" --remote \
+            --command="ALTER TABLE items ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1" || true
+
       # ---- 3. Deploy Pages ----
       - name: Create Pages project if needed
         run: wrangler pages project create "$PROJECT_NAME" --production-branch=main 2>&1 || true

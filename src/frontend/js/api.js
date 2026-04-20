@@ -138,6 +138,28 @@ class API {
   clearAllHistory(token) {
     return this.request('DELETE', '/config/history', null, token);
   }
+
+  // Config - Equipment
+  getEquipment() {
+    return this.request('GET', '/config/equipment');
+  }
+
+  createEquipment(name, category, token) {
+    return this.request('POST', '/config/equipment', { name, category }, token);
+  }
+
+  // Config - Items (inventory management)
+  addItems(equipmentId, homeVenueId, quantity, token) {
+    return this.request('POST', '/config/items', {
+      equipment_id: equipmentId,
+      home_venue_id: homeVenueId,
+      quantity,
+    }, token);
+  }
+
+  retireItem(id, token) {
+    return this.request('DELETE', `/config/items/${id}`, null, token);
+  }
 }
 
 const api = new API();
