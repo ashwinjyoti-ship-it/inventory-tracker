@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LS Inventory">
   <link rel="apple-touch-icon" href="/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=12">
-  <link rel="stylesheet" href="css/skeu.css?v=12">
+  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/skeu.css?v=13">
 </head>
 <body>
   <header>
@@ -343,27 +343,46 @@
             </div>
             <div id="retire-items-list" class="mt-1"></div>
 
-            <hr class="mt-3 mb-2">
+          </div>
+        </div>
+
+        <!-- Repairs Section -->
+        <div class="card collapsible collapsed mb-3" id="admin-repairs-card">
+          <button type="button" class="collapsible-header"
+                  onclick="app.toggleAdminSection('repairs')"
+                  aria-expanded="false" aria-controls="admin-repairs-body">
+            <div class="collapsible-title">
+              <h3>Repairs</h3>
+              <p class="text-small text-muted">Send items for repair, return them when fixed, and view repair history.</p>
+            </div>
+            <span class="collapsible-chevron" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="collapsible-body" id="admin-repairs-body">
 
             <h4 class="mt-2 mb-1">Send to Repair</h4>
             <div class="form-group">
               <label for="send-repair-filter">Filter by Equipment Type</label>
               <select id="send-repair-filter">
-                <option value="">-- All Equipment --</option>
+                <option value="">-- Select Equipment Type --</option>
               </select>
             </div>
             <div class="form-group">
               <label for="send-repair-notes">Notes (optional)</label>
               <input type="text" id="send-repair-notes" placeholder="e.g., Cracked housing, needs solder">
             </div>
-            <div id="send-repair-list" class="mt-1"></div>
+            <div id="send-repair-list" class="mt-1">
+              <p class="text-muted text-small">Select an equipment type above to see items.</p>
+            </div>
 
-            <h4 class="mt-3 mb-1">Currently Under Repair</h4>
+            <hr class="mt-3 mb-2">
+
+            <h4 class="mt-1 mb-1">Currently Under Repair</h4>
             <div id="repair-items-list" class="mt-1"></div>
 
-            <h4 class="mt-3 mb-1">Repair History</h4>
-            <button class="btn btn-secondary btn-small mb-1" id="load-repair-history">Load History</button>
-            <div id="repair-history-list"></div>
+            <hr class="mt-3 mb-2">
+
+            <h4 class="mt-1 mb-1">Repair History</h4>
+            <div id="repair-history-list" class="mt-1"></div>
 
           </div>
         </div>
@@ -440,10 +459,10 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=12"></script>
-  <script src="js/api.js?v=12"></script>
-  <script src="js/ui.js?v=12"></script>
-  <script src="js/app.js?v=12"></script>
+  <script src="js/storage.js?v=13"></script>
+  <script src="js/api.js?v=13"></script>
+  <script src="js/ui.js?v=13"></script>
+  <script src="js/app.js?v=13"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
