@@ -234,5 +234,19 @@ export async function handleConfigRequest(request, db, env) {
     }
   }
 
+  // DELETE /api/config/history — wipe all movement records and reset item locations
+  if (pathname === '/api/config/history' && request.method === 'DELETE') {
+    const auth = await requireAdmin(request, db);
+    if (!auth.authorized) return auth.response;
+
+    try {
+      await db.clearAllHistory();
+      return jsonResponse({ success: true, message: 'All history cleared and items reset' });
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      return errorResponse('Failed to clear history', 500);
+    }
+  }
+
   return null;
 }

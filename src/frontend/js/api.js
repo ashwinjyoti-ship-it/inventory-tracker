@@ -134,6 +134,10 @@ class API {
   deleteCrewMember(id, token) {
     return this.request('DELETE', `/config/crew/${id}`, null, token);
   }
+
+  clearAllHistory(token) {
+    return this.request('DELETE', '/config/history', null, token);
+  }
 }
 
 const api = new API();

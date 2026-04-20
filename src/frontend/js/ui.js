@@ -297,12 +297,10 @@ class UI {
       data.crew.forEach(member => {
         const item = document.createElement('div');
         item.className = 'list-item';
-        const roleText = member.role === 'admin' ? 'Admin' : 'Crew';
 
         item.innerHTML = `
           <div class="list-item-content">
             <div class="list-item-title">${member.name}</div>
-            <div class="list-item-subtitle">${roleText}</div>
           </div>
           <button class="btn btn-small btn-danger" onclick="ui.deleteCrewMember(${member.id}, '${token}')">Delete</button>
         `;

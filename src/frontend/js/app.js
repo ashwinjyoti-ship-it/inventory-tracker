@@ -46,6 +46,7 @@ class App {
     document.getElementById('venue-add')?.addEventListener('click', () => this.handleVenueAdd());
     document.getElementById('crew-add')?.addEventListener('click', () => this.handleCrewAdd());
     document.getElementById('pw-change')?.addEventListener('click', () => this.handlePasswordChange());
+    document.getElementById('history-clear')?.addEventListener('click', () => this.handleClearHistory());
 
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -426,6 +427,22 @@ class App {
       ui.loadCrewList(token);
     } catch (error) {
       ui.showError('Failed to add crew member: ' + error.message);
+    }
+  }
+
+  async handleClearHistory() {
+    if (!confirm(
+      'This will permanently delete ALL movement history and reset every item to its home venue ' +
+      '(including items currently checked out). This cannot be undone.\n\nAre you sure?'
+    )) return;
+
+    const token = storage.getAdminToken();
+    try {
+      await api.clearAllHistory(token);
+      storage.clearAllCache();
+      ui.showSuccess('All history cleared. Items reset to home venues.');
+    } catch (error) {
+      ui.showError('Failed to clear history: ' + error.message);
     }
   }
 }
