@@ -59,12 +59,6 @@ class App {
     document.getElementById('equip-add')?.addEventListener('click', () => this.handleEquipmentAdd());
     document.getElementById('items-add')?.addEventListener('click', () => this.handleItemsAdd());
 
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        e.target.closest('.nav-item').classList.add('active');
-      });
-    });
   }
 
   showPage(pageName) {
@@ -76,6 +70,10 @@ class App {
       this.currentPage = pageName;
       this.loadPageData(pageName);
     }
+
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.dataset.page === pageName);
+    });
   }
 
   async loadPageData(pageName) {
