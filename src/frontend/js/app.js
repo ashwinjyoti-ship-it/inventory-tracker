@@ -206,11 +206,7 @@ class App {
       await api.checkout(itemIds, parseInt(crewId), parseInt(fromVenueId), parseInt(toVenueId), notes);
       ui.showSuccess(`${itemIds.length} item(s) checked out successfully!`);
       storage.clearCache('items');
-
-      // Reset form to a clean state for a new entry
       this.resetCheckoutForm();
-
-      setTimeout(() => this.showPage('home'), 1000);
     } catch (error) {
       ui.showError('Checkout failed: ' + error.message);
     }
