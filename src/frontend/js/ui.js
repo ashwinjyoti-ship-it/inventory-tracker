@@ -367,9 +367,9 @@ class UI {
       ['item-equipment', 'retire-equipment', 'send-repair-filter'].forEach((id, i) => {
         const sel = document.getElementById(id);
         if (!sel) return;
-        sel.innerHTML = i === 0
-          ? '<option value="">-- Select Equipment Type --</option>'
-          : '<option value="">-- All Equipment --</option>';
+        sel.innerHTML = i === 1
+          ? '<option value="">-- All Equipment --</option>'
+          : '<option value="">-- Select Equipment Type --</option>';
         equipment.forEach(e => {
           const opt = document.createElement('option');
           opt.value = e.id;
@@ -432,10 +432,13 @@ class UI {
   async loadSendRepairList(token, equipmentId = null) {
     const container = document.getElementById('send-repair-list');
     if (!container) return;
+    if (!equipmentId) {
+      container.innerHTML = '<p class="text-muted text-small">Select an equipment type above to see items.</p>';
+      return;
+    }
     container.innerHTML = '<p class="text-muted text-small">Loading…</p>';
     try {
-      const filters = { status: 'available' };
-      if (equipmentId) filters.equipment = equipmentId;
+      const filters = { status: 'available', equipment: equipmentId };
       const data = await api.getItems(filters);
       const items = data.items || [];
       if (items.length === 0) {
