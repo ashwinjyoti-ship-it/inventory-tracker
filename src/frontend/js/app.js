@@ -111,6 +111,7 @@ class App {
 
       case 'home':
         ui.loadQuickStats();
+        ui.loadHomeAlerts();
         break;
 
       case 'admin': {

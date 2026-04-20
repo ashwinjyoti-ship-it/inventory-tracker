@@ -551,22 +551,51 @@ class UI {
   async loadQuickStats() {
     try {
       const items = await api.getItems();
-      const unreturned = await api.getUnreturnedItems();
 
       const container = document.getElementById('quick-stats');
       const totalItems = items.count || 0;
       const checkedOut = (items.items || []).filter(i => i.status === 'checked_out').length;
-      const alerts = unreturned.unreturned_items?.length || 0;
 
       container.innerHTML = `
-        <div class="flex-between mb-1">
+        <div class="flex-between">
           <span><strong>Total Equipment:</strong> ${totalItems}</span>
           <span><strong>Checked Out:</strong> ${checkedOut}</span>
         </div>
-        <div><strong>Unreturned (5+ days):</strong> ${alerts}</div>
       `;
     } catch (error) {
       console.error('Failed to load stats:', error);
+    }
+  }
+
+  async loadHomeAlerts() {
+    const container = document.getElementById('home-alerts');
+    if (!container) return;
+    try {
+      const data = await api.getUnreturnedItems(5);
+      const items = data.unreturned_items || [];
+      container.innerHTML = '';
+      if (items.length === 0) return;
+
+      const header = document.createElement('p');
+      header.className = 'text-small text-muted mb-1';
+      header.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} not returned in 5+ days`;
+      container.appendChild(header);
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'alert alert-warning';
+        div.innerHTML = `
+          <strong>${item.equipment_name} #${item.item_number}</strong>
+          <div class="text-small mt-1">
+            Holder: ${item.crew_member_name}<br>
+            Base: ${item.home_venue_name}<br>
+            ${item.days_out} day${item.days_out !== 1 ? 's' : ''} out
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      console.error('Failed to load home alerts:', error);
     }
   }
 }

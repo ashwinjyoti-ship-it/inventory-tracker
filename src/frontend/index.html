@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LS Inventory">
   <link rel="apple-touch-icon" href="/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=11">
-  <link rel="stylesheet" href="css/skeu.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=12">
+  <link rel="stylesheet" href="css/skeu.css?v=12">
 </head>
 <body>
   <header>
@@ -79,7 +79,8 @@
         </div>
       </div>
 
-      <div id="quick-stats" class="card"></div>
+      <div id="quick-stats" class="card mb-3"></div>
+      <div id="home-alerts"></div>
     </div>
 
     <!-- Checkout Page -->
@@ -439,10 +440,10 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=11"></script>
-  <script src="js/api.js?v=11"></script>
-  <script src="js/ui.js?v=11"></script>
-  <script src="js/app.js?v=11"></script>
+  <script src="js/storage.js?v=12"></script>
+  <script src="js/api.js?v=12"></script>
+  <script src="js/ui.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');

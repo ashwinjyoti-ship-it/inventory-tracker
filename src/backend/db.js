@@ -201,12 +201,15 @@ export class Database {
       SELECT i.*, e.name as equipment_name,
              c.name as crew_member_name,
              v.name as current_venue_name,
+             vh.name as home_venue_name,
              m.logged_at as checked_out_at,
              CAST((julianday('now') - julianday(m.logged_at)) AS INTEGER) as days_out
       FROM items i
       JOIN equipment e ON i.equipment_id = e.id
       JOIN venues v ON i.current_venue_id = v.id
+      JOIN venues vh ON i.home_venue_id = vh.id
       JOIN movements m ON i.id = m.item_id AND m.movement_type = 'checkout'
+      JOIN crew_members c ON m.crew_member_id = c.id
       WHERE i.status = 'checked_out'
         AND i.is_active = 1
         AND m.id = (
