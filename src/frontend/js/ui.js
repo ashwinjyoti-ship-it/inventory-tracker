@@ -63,9 +63,23 @@ class UI {
       }
 
       container.innerHTML = '';
-      data.items.forEach(item => {
+
+      // Search input
+      const searchInput = document.createElement('input');
+      searchInput.type = 'search';
+      searchInput.placeholder = `Search ${data.items.length} items…`;
+      searchInput.autocomplete = 'off';
+      searchInput.style.cssText = 'margin-bottom:0.75rem';
+      container.appendChild(searchInput);
+
+      // Item list
+      const list = document.createElement('div');
+      container.appendChild(list);
+
+      const labels = data.items.map(item => {
         const label = document.createElement('label');
         label.className = 'checkbox';
+        label.dataset.search = item.equipment_name.toLowerCase();
 
         const statusBadge = item.status === 'checked_out'
           ? '<span class="badge badge-warning" style="margin-left:auto">In Transit</span>'
@@ -76,7 +90,17 @@ class UI {
           <span>${item.equipment_name} #${item.item_number}</span>
           ${statusBadge}
         `;
-        container.appendChild(label);
+        list.appendChild(label);
+        return label;
+      });
+
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.toLowerCase().trim();
+        labels.forEach(label => {
+          const matches = !q || label.dataset.search.includes(q);
+          const checked = label.querySelector('input').checked;
+          label.style.display = (matches || checked) ? '' : 'none';
+        });
       });
     } catch (error) {
       this.showError('Failed to load items');
