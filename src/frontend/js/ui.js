@@ -596,28 +596,42 @@ class UI {
       header.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} not returned in 5+ days`;
       container.appendChild(header);
 
+      // Group items by holder
+      const byHolder = new Map();
       items.forEach(item => {
+        if (!byHolder.has(item.crew_member_name)) byHolder.set(item.crew_member_name, []);
+        byHolder.get(item.crew_member_name).push(item);
+      });
+
+      byHolder.forEach((holderItems, holderName) => {
+        const maxDays = Math.max(...holderItems.map(i => i.days_out));
         const wrap = document.createElement('div');
         wrap.className = 'alert-item-wrap';
 
         const chip = document.createElement('div');
         chip.className = 'alert-chip';
+        const itemLabel = holderItems.length === 1
+          ? holderItems[0].equipment_name + ' #' + holderItems[0].item_number
+          : `${holderItems.length} items`;
         chip.innerHTML = `
           <div class="alert-chip-info">
-            <span class="alert-chip-name">${item.crew_member_name}</span>
-            <span class="alert-chip-equip">${item.equipment_name} #${item.item_number}</span>
+            <span class="alert-chip-name">${holderName}</span>
+            <span class="alert-chip-equip">${itemLabel}</span>
           </div>
-          <span class="badge badge-warning">${item.days_out}d</span>
+          <span class="badge badge-warning">${maxDays}d</span>
           <span class="alert-chip-chevron">&#9662;</span>
         `;
 
         const details = document.createElement('div');
         details.className = 'alert-chip-details';
-        details.innerHTML = `
-          <div>Location: ${item.current_venue_name}</div>
-          <div>Base: ${item.home_venue_name}</div>
-          <div>${item.days_out} day${item.days_out !== 1 ? 's' : ''} out</div>
-        `;
+        holderItems.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.className = 'alert-detail-row';
+          if (idx < holderItems.length - 1) row.classList.add('alert-detail-row-divider');
+          row.innerHTML = `<strong>${item.equipment_name} #${item.item_number}</strong><br>
+            <span>Location: ${item.current_venue_name} &nbsp;·&nbsp; ${item.days_out} day${item.days_out !== 1 ? 's' : ''} out</span>`;
+          details.appendChild(row);
+        });
 
         chip.addEventListener('click', () => {
           chip.classList.toggle('open');
