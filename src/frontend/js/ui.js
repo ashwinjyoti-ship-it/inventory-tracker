@@ -577,6 +577,18 @@ class UI {
       const data = await api.getUnreturnedItems(5);
       const items = data.unreturned_items || [];
       container.innerHTML = '';
+
+      const indicator = document.getElementById('alert-indicator');
+      const indicatorCount = document.getElementById('alert-indicator-count');
+      if (indicator) {
+        if (items.length > 0) {
+          indicator.classList.remove('hidden');
+          indicatorCount.textContent = `${items.length} overdue`;
+        } else {
+          indicator.classList.add('hidden');
+        }
+      }
+
       if (items.length === 0) return;
 
       const header = document.createElement('p');
@@ -585,18 +597,36 @@ class UI {
       container.appendChild(header);
 
       items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'alert alert-warning';
-        div.innerHTML = `
-          <strong>${item.equipment_name} #${item.item_number}</strong>
-          <div class="text-small mt-1">
-            Holder: ${item.crew_member_name}<br>
-            Location: ${item.current_venue_name}<br>
-            Base: ${item.home_venue_name}<br>
-            ${item.days_out} day${item.days_out !== 1 ? 's' : ''} out
+        const wrap = document.createElement('div');
+        wrap.className = 'alert-item-wrap';
+
+        const chip = document.createElement('div');
+        chip.className = 'alert-chip';
+        chip.innerHTML = `
+          <div class="alert-chip-info">
+            <span class="alert-chip-name">${item.crew_member_name}</span>
+            <span class="alert-chip-equip">${item.equipment_name} #${item.item_number}</span>
           </div>
+          <span class="badge badge-warning">${item.days_out}d</span>
+          <span class="alert-chip-chevron">&#9662;</span>
         `;
-        container.appendChild(div);
+
+        const details = document.createElement('div');
+        details.className = 'alert-chip-details';
+        details.innerHTML = `
+          <div>Location: ${item.current_venue_name}</div>
+          <div>Base: ${item.home_venue_name}</div>
+          <div>${item.days_out} day${item.days_out !== 1 ? 's' : ''} out</div>
+        `;
+
+        chip.addEventListener('click', () => {
+          chip.classList.toggle('open');
+          details.classList.toggle('open');
+        });
+
+        wrap.appendChild(chip);
+        wrap.appendChild(details);
+        container.appendChild(wrap);
       });
     } catch (error) {
       console.error('Failed to load home alerts:', error);

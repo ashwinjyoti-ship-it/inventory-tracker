@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LS Inventory">
   <link rel="apple-touch-icon" href="/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=13">
-  <link rel="stylesheet" href="css/skeu.css?v=13">
+  <link rel="stylesheet" href="css/style.css?v=14">
+  <link rel="stylesheet" href="css/skeu.css?v=14">
 </head>
 <body>
   <header>
@@ -19,7 +19,14 @@
       <div>
         <h1>Sound Inventory Tracker</h1>
       </div>
-      <button class="btn btn-small btn-secondary" onclick="app.showPage('admin')">Admin</button>
+      <div class="header-right-group">
+        <button id="alert-indicator" class="alert-indicator hidden"
+                onclick="app.showPage('alerts')" title="Unreturned items">
+          <span class="alert-dot-pulse"></span>
+          <span id="alert-indicator-count"></span>
+        </button>
+        <button class="btn btn-small btn-secondary" onclick="app.showPage('admin')">Admin</button>
+      </div>
     </div>
   </header>
 
@@ -459,10 +466,10 @@
     </button>
   </nav>
 
-  <script src="js/storage.js?v=13"></script>
-  <script src="js/api.js?v=13"></script>
-  <script src="js/ui.js?v=13"></script>
-  <script src="js/app.js?v=13"></script>
+  <script src="js/storage.js?v=14"></script>
+  <script src="js/api.js?v=14"></script>
+  <script src="js/ui.js?v=14"></script>
+  <script src="js/app.js?v=14"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
